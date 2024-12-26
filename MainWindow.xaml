@@ -30,9 +30,9 @@
         </ControlTemplate>
 
         <col:ArrayList x:Key="ItemsToShow">
-            <Rectangle Margin="10" Fill="AliceBlue"></Rectangle>
+            <Rectangle Margin="10" Fill="Red"></Rectangle>
             <Rectangle Margin="10" Fill="Aqua"></Rectangle>
-            <Rectangle Margin="10" Fill="AntiqueWhite"></Rectangle>
+            <Rectangle Margin="10" Fill="Green"></Rectangle>
             <Rectangle Margin="10" Fill="Blue"></Rectangle>
 
         </col:ArrayList>
@@ -53,7 +53,7 @@
         <dashboards:DashboardControl 
             ItemsSource="{StaticResource ItemsToShow}"
             Template="{StaticResource DashboardTemplate}"
-            LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
+            LayoutSetting2="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
             Grid.Column="1">
         </dashboards:DashboardControl>
     </Grid>
