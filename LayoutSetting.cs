@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DragNDropTask
 {
-    internal class LayoutSetting
+    public class LayoutSetting
     {
         private int _availableId = 1;
 

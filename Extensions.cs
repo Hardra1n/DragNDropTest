@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace DragNDropTask
 {
@@ -86,6 +88,31 @@ namespace DragNDropTask
             layoutSetting9.Name = "3-3-3";
 
             return layouts;
+        }
+
+        public static ObservableCollection<WidgetViewModel>? CreateDefaultItemsSource()
+        {
+            ObservableCollection<WidgetViewModel> widgets = new();
+            const int NUMBER_OF_OBJECTS = 5;
+
+            for (int i = 0; i < NUMBER_OF_OBJECTS; i++)
+            {
+                Random rand = new();
+                widgets.Add(new WidgetViewModel()
+                {
+                    PosIndex = i, 
+                    Content = new Rectangle()
+                    {
+                        Fill = new SolidColorBrush(Color.FromRgb(
+                            (byte)rand.Next(256), 
+                            (byte)rand.Next(256), 
+                            (byte)rand.Next(256)))
+                    }
+
+                });
+            }
+
+            return widgets;
         }
     }
 }

@@ -25,17 +25,13 @@
             </RadioButton>
         </DataTemplate>
 
+        <DataTemplate x:Key="DashboardItemTemplate" DataType="{x:Type ContentControl}">
+            <ContentControl Margin="10" Content="{Binding }"></ContentControl>
+        </DataTemplate>
+
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">
             <Grid Name="DashboardRoot" ShowGridLines="True"></Grid>
         </ControlTemplate>
-
-        <col:ArrayList x:Key="ItemsToShow">
-            <Rectangle Margin="10" Fill="Red"></Rectangle>
-            <Rectangle Margin="10" Fill="Aqua"></Rectangle>
-            <Rectangle Margin="10" Fill="Green"></Rectangle>
-            <Rectangle Margin="10" Fill="Blue"></Rectangle>
-
-        </col:ArrayList>
 
     </Window.Resources>
     <Grid>
@@ -51,9 +47,10 @@
             <TextBlock Text="{Binding Path= SelectedLayoutSetting.Name}"></TextBlock>
         </StackPanel>
         <dashboards:DashboardControl 
-            ItemsSource="{StaticResource ItemsToShow}"
+            ItemTemplate="{StaticResource DashboardItemTemplate}"
+            ItemsSource="{Binding ItemsSource}"
             Template="{StaticResource DashboardTemplate}"
-            LayoutSetting2="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
+            LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
             Grid.Column="1">
         </dashboards:DashboardControl>
     </Grid>

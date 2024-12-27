@@ -16,8 +16,10 @@ namespace DragNDropTask
         public DragNDropViewModel()
         {
             LayoutSettings = Extensions.CreateDefaultLayouts();
+            ItemsSource = Extensions.CreateDefaultItemsSource();
         }
 
+        public ObservableCollection<WidgetViewModel> ItemsSource { get; set; } 
         public ObservableCollection<LayoutSetting> LayoutSettings { get; set; }
 
         public LayoutSetting? SelectedLayoutSetting

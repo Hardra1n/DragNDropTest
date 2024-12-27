@@ -6,28 +6,38 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Effects;
+using System.Windows.Shapes;
 using System.Xml.Linq;
 
 namespace DragNDropTask.Dashboards
 {
     [TemplatePart(Name = "DashboardRoot", Type =  typeof(Grid))]
-    internal class DashboardControl : Control
+    public class DashboardControl : Control
     {
+        private ItemContainerGenerator? _itemContainerGenerator = null;
 
         public static readonly DependencyProperty LayoutSettingProperty
-            = DependencyProperty.Register(nameof(LayoutSetting2), typeof(LayoutSetting), typeof(DashboardControl),
+            = DependencyProperty.Register(nameof(LayoutSetting), typeof(LayoutSetting), typeof(DashboardControl),
                 new PropertyMetadata(null, OnLayoutSettingChanged));
 
         public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
             nameof(ItemsSource), typeof(IEnumerable), typeof(DashboardControl), new PropertyMetadata(default(IEnumerable)));
 
+        public static readonly DependencyProperty ItemTemplateProperty = DependencyProperty.Register(
+            nameof(ItemTemplate), typeof(DataTemplate), typeof(DashboardControl), new PropertyMetadata(default(DataTemplate)));
 
+        public DataTemplate ItemTemplate
+        {
+            get { return (DataTemplate)GetValue(ItemTemplateProperty); }
+            set { SetValue(ItemTemplateProperty, value); }
+        }
 
         private Grid DashboardRoot { get; set; }
 
-        public LayoutSetting LayoutSetting2
+        public LayoutSetting LayoutSetting
         {
             get => (LayoutSetting)GetValue(LayoutSettingProperty);
             set => SetValue(LayoutSettingProperty, value);
@@ -38,7 +48,6 @@ namespace DragNDropTask.Dashboards
             get { return (IEnumerable)GetValue(ItemsSourceProperty); }
             set { SetValue(ItemsSourceProperty, value); }
         }
-
 
 
 
@@ -57,6 +66,7 @@ namespace DragNDropTask.Dashboards
             {
                 throw new ArgumentException("Unable to find grid with 'DashboardRoot' name");
             }
+
 
             DashboardRoot = dashboardRoot;
         }
@@ -107,15 +117,27 @@ namespace DragNDropTask.Dashboards
 
         private void AddElementToDashboard(WidgetPosition position, object item)
         {
-            if (item is not UIElement element)
+            if (item is not WidgetViewModel widgetVM)
                 return;
-            element.AllowDrop = true;
-            element.MouseMove += MouseMoveHanlder;
-            element.DragEnter += DragEnterTempMethod;
-            element.Drop += DropTempMethod;
-            element.DragLeave += DragLeaveTempMethod;
-            position.SetWidgetPosition(element);
-            DashboardRoot.Children.Add(element);
+            if (widgetVM.Content is not UIElement element)
+                return;
+            ContentControl contentControl = new ContentControl();
+
+            contentControl.AllowDrop = true;
+            contentControl.MouseMove += MouseMoveHanlder;
+            contentControl.DragEnter += DragEnterTempMethod;
+            contentControl.Drop += DropTempMethod;
+            contentControl.DragLeave += DragLeaveTempMethod;
+            position.SetWidgetPosition(contentControl);
+            contentControl.Content = element;
+
+            Binding itemTemplateBinding = new Binding(nameof(ItemTemplate))
+            {
+                Source = this
+            };
+            contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
+
+            DashboardRoot.Children.Add(contentControl);
         }
 
 
@@ -178,11 +200,11 @@ namespace DragNDropTask.Dashboards
         private WidgetPosition[] GetPositionsByLayoutSettings()
         {
             Dictionary<int, WidgetPosition> positions = new Dictionary<int, WidgetPosition>();
-            for (int i = 0; i < LayoutSetting2.RowCount; i++)
+            for (int i = 0; i < LayoutSetting.RowCount; i++)
             {
-                for (int j = 0; j < LayoutSetting2.ColumnCount; j++)
+                for (int j = 0; j < LayoutSetting.ColumnCount; j++)
                 {
-                    int currentElemIndex = LayoutSetting2.ElementsScheme[i, j];
+                    int currentElemIndex = LayoutSetting.ElementsScheme[i, j];
                     if (positions.ContainsKey(currentElemIndex) || currentElemIndex == 0)
                     {
                         continue;
@@ -196,9 +218,9 @@ namespace DragNDropTask.Dashboards
                         };
 
                         int k = 1;
-                        while (i + k < LayoutSetting2.RowCount)
+                        while (i + k < LayoutSetting.RowCount)
                         {
-                            if (LayoutSetting2.ElementsScheme[i + k, j] != currentElemIndex)
+                            if (LayoutSetting.ElementsScheme[i + k, j] != currentElemIndex)
                             {
                                 break;
                             }
@@ -209,9 +231,9 @@ namespace DragNDropTask.Dashboards
                         widgetPosition.RowSpan = k;
 
                         k = 1;
-                        while (j + k < LayoutSetting2.ColumnCount)
+                        while (j + k < LayoutSetting.ColumnCount)
                         {
-                            if (LayoutSetting2.ElementsScheme[i, j + k] != currentElemIndex)
+                            if (LayoutSetting.ElementsScheme[i, j + k] != currentElemIndex)
                             {
                                 break;
                             }
@@ -261,12 +283,6 @@ namespace DragNDropTask.Dashboards
                 element.SetValue(Grid.ColumnProperty, Column);
                 element.SetValue(Grid.ColumnSpanProperty, ColumnSpan);
             }
-        }
-
-        private sealed class DragNDropData
-        {
-            public WidgetPosition Position { get; init; }
-            public UIElement Element { get; init; }
         }
     }
 }
