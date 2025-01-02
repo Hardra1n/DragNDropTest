@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-
-namespace DragNDropTask
+﻿namespace DragNDropTask
 {
     internal class WidgetViewModel : ViewModelBase
     {
         private int _posIndex;
-        private object _content;
+        private object? _content;
 
         public int PosIndex
         {
@@ -23,7 +16,7 @@ namespace DragNDropTask
             }
         }
 
-        public object Content
+        public object? Content
         {
             get => _content;
             set

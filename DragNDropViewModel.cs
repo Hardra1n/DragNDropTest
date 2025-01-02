@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Collections.ObjectModel;
 
 namespace DragNDropTask
 {
@@ -33,14 +27,23 @@ namespace DragNDropTask
             }
         }
 
-        public MyCommand SelectLayoutSettingCommand =>
-            _selectLayoutSettingCommand ?? new MyCommand(
-                (obj) =>
-                {
-                    if (obj == null || obj is not LayoutSetting layoutSetting)
-                        return;
-                    _selectedLayoutSetting = layoutSetting;
-                    OnPropertyChanged(nameof(SelectedLayoutSetting));
-                });
+        public MyCommand SelectLayoutSettingCommand
+        {
+            get
+            {
+
+                _selectLayoutSettingCommand ??= new MyCommand(
+                    (obj) =>
+                    {
+                        if (obj is not LayoutSetting layoutSetting)
+                        {
+                            return;
+                        }
+                        _selectedLayoutSetting = layoutSetting;
+                        OnPropertyChanged(nameof(SelectedLayoutSetting));
+                    });
+                return _selectLayoutSettingCommand;
+            }
+        }
     }
 }

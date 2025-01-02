@@ -1,23 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media.Effects;
-using System.Windows.Shapes;
-using System.Xml.Linq;
 
 namespace DragNDropTask.Dashboards
 {
-    [TemplatePart(Name = "DashboardRoot", Type =  typeof(Grid))]
+    [TemplatePart(Name = DashboardRootName, Type =  typeof(Grid))]
     public class DashboardControl : Control
     {
-        private ItemContainerGenerator? _itemContainerGenerator = null;
+        private const string DashboardRootName = "DashboardRoot";
 
         public static readonly DependencyProperty LayoutSettingProperty
             = DependencyProperty.Register(nameof(LayoutSetting), typeof(LayoutSetting), typeof(DashboardControl),
@@ -31,11 +22,10 @@ namespace DragNDropTask.Dashboards
 
         public DataTemplate ItemTemplate
         {
-            get { return (DataTemplate)GetValue(ItemTemplateProperty); }
-            set { SetValue(ItemTemplateProperty, value); }
+            get => (DataTemplate)GetValue(ItemTemplateProperty);
+            set => SetValue(ItemTemplateProperty, value);
         }
 
-        private Grid DashboardRoot { get; set; }
 
         public LayoutSetting LayoutSetting
         {
@@ -45,9 +35,13 @@ namespace DragNDropTask.Dashboards
 
         public IEnumerable ItemsSource
         {
-            get { return (IEnumerable)GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); }
+            get => (IEnumerable)GetValue(ItemsSourceProperty);
+            set => SetValue(ItemsSourceProperty, value);
         }
+
+        private Grid? DashboardRoot { get; set; }
+        
+        private DragDropHelper? DragDropHelper { get; set; }
 
 
 
@@ -62,17 +56,23 @@ namespace DragNDropTask.Dashboards
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            if (GetTemplateChild("DashboardRoot") is not Grid dashboardRoot)
+            if (GetTemplateChild(DashboardRootName) is not Grid dashboardRoot)
             {
-                throw new ArgumentException("Unable to find grid with 'DashboardRoot' name");
+                throw new ArgumentException($"Unable to find grid with '{DashboardRootName}' name");
             }
 
 
             DashboardRoot = dashboardRoot;
+            DragDropHelper = new DragDropHelper(DashboardRoot);
         }
 
-        private void HandleLayoutSettingsChanged(DependencyPropertyChangedEventArgs eventArgs)
+        private void HandleLayoutSettingsChanged(DependencyPropertyChangedEventArgs ea)
         {
+            if (DashboardRoot == null)
+            {
+                return;
+            }
+
             ClearCurrentLayoutInformation();
 
             var positions = GetPositionsByLayoutSettings();
@@ -93,23 +93,32 @@ namespace DragNDropTask.Dashboards
             for (int i = 0; i < positions.Length && itemEnumerator.MoveNext(); i++)
             {
                 var item = itemEnumerator.Current;
+                if (item != null)
+                {
+                    AddElementToDashboard(positions[i], item);
+                }
+            }
 
-                AddElementToDashboard(positions[i], item);
+            if (itemEnumerator is IDisposable disposable)
+            {
+                disposable.Dispose();
             }
         }
 
         private void ClearCurrentLayoutInformation()
         {
+            if (DashboardRoot == null)
+            {
+                return;
+            }
+
             DashboardRoot.RowDefinitions.Clear();
             DashboardRoot.ColumnDefinitions.Clear();
             foreach (var child in DashboardRoot.Children)
             {
                 if (child is UIElement element)
                 {
-                    element.MouseMove -= MouseMoveHanlder;
-                    element.DragEnter -= DragEnterTempMethod;
-                    element.Drop -= DropTempMethod;
-                    element.DragLeave -= DragLeaveTempMethod;
+                    DragDropHelper?.Unregister(element);
                 }
             }
             DashboardRoot.Children.RemoveRange(0, DashboardRoot.Children.Count);
@@ -117,21 +126,19 @@ namespace DragNDropTask.Dashboards
 
         private void AddElementToDashboard(WidgetPosition position, object item)
         {
-            if (item is not WidgetViewModel widgetVM)
+            if (DashboardRoot == null || 
+                item is not WidgetViewModel { Content: UIElement element })
+            {
                 return;
-            if (widgetVM.Content is not UIElement element)
-                return;
-            ContentControl contentControl = new ContentControl();
+            }
 
-            contentControl.AllowDrop = true;
-            contentControl.MouseMove += MouseMoveHanlder;
-            contentControl.DragEnter += DragEnterTempMethod;
-            contentControl.Drop += DropTempMethod;
-            contentControl.DragLeave += DragLeaveTempMethod;
-            position.SetWidgetPosition(contentControl);
+            ContentControl contentControl = new();
+
+            DragDropHelper?.Register(contentControl);
+            contentControl.SetWidgetPositionOnDashboard(position);
             contentControl.Content = element;
 
-            Binding itemTemplateBinding = new Binding(nameof(ItemTemplate))
+            Binding itemTemplateBinding = new(nameof(ItemTemplate))
             {
                 Source = this
             };
@@ -141,65 +148,10 @@ namespace DragNDropTask.Dashboards
         }
 
 
-        private void MouseMoveHanlder(object sender, MouseEventArgs e)
-        {
-            if (sender is not UIElement element)
-            {
-                return;
-            }
-
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                var data = new DataObject(typeof(UIElement), element);
-                DragDrop.DoDragDrop(DashboardRoot, data, DragDropEffects.Move);
-            }
-        }
-
-        private void DropTempMethod(object sender, DragEventArgs e)
-        {
-            if (sender is not UIElement element)
-            {
-                return;
-            }
-
-            var sourceElem = e.Data.GetData(typeof(UIElement)) as UIElement;
-            if (sourceElem == null)
-            {
-                return;
-            }
-
-            var positionDest = WidgetPosition.GetWidgetPositionByElement(element);
-            var positionSource = WidgetPosition.GetWidgetPositionByElement(sourceElem);
-            
-
-            positionDest.SetWidgetPosition(sourceElem);
-            positionSource.SetWidgetPosition(element);
-
-            element.Effect = null;
-        }
-
-        private void DragEnterTempMethod(object sender, DragEventArgs e)
-        {
-            if (sender is not UIElement element)
-            {
-                return;
-            }
-
-            element.Effect = new DropShadowEffect();
-        }
-        private void DragLeaveTempMethod(object sender, DragEventArgs e)
-        {
-            if (sender is not UIElement element)
-            {
-                return;
-            }
-
-            element.Effect = null;
-        }
 
         private WidgetPosition[] GetPositionsByLayoutSettings()
         {
-            Dictionary<int, WidgetPosition> positions = new Dictionary<int, WidgetPosition>();
+            Dictionary<int, WidgetPosition> positions = new();
             for (int i = 0; i < LayoutSetting.RowCount; i++)
             {
                 for (int j = 0; j < LayoutSetting.ColumnCount; j++)
@@ -209,80 +161,70 @@ namespace DragNDropTask.Dashboards
                     {
                         continue;
                     }
-                    else
+
+                    var widgetPosition = new WidgetPosition()
                     {
-                        var widgetPosition = new WidgetPosition()
-                        {
-                            Row = i,
-                            Column = j,
-                        };
+                        Row = i,
+                        Column = j,
+                    };
 
-                        int k = 1;
-                        while (i + k < LayoutSetting.RowCount)
+                    int k = 1;
+                    while (i + k < LayoutSetting.RowCount)
+                    {
+                        if (LayoutSetting.ElementsScheme[i + k, j] != currentElemIndex)
                         {
-                            if (LayoutSetting.ElementsScheme[i + k, j] != currentElemIndex)
-                            {
-                                break;
-                            }
-
-                            k++;
+                            break;
                         }
 
-                        widgetPosition.RowSpan = k;
-
-                        k = 1;
-                        while (j + k < LayoutSetting.ColumnCount)
-                        {
-                            if (LayoutSetting.ElementsScheme[i, j + k] != currentElemIndex)
-                            {
-                                break;
-                            }
-
-                            k++;
-                        }
-
-                        widgetPosition.ColumnSpan = k;
-
-                        positions.Add(currentElemIndex, widgetPosition);
+                        k++;
                     }
+
+                    widgetPosition.RowSpan = k;
+
+                    k = 1;
+                    while (j + k < LayoutSetting.ColumnCount)
+                    {
+                        if (LayoutSetting.ElementsScheme[i, j + k] != currentElemIndex)
+                        {
+                            break;
+                        }
+
+                        k++;
+                    }
+
+                    widgetPosition.ColumnSpan = k;
+
+                    positions.Add(currentElemIndex, widgetPosition);
                 }
             }
 
             return positions.Values.ToArray();
         }
+    }
 
-        private sealed class WidgetPosition
+    internal sealed class WidgetPosition
+    {
+        public int Row { get; init; }
+
+        public int Column { get; init; }
+
+        public int RowSpan { get; set; } = 1;
+
+        public int ColumnSpan { get; set; } = 1;
+
+        public static WidgetPosition GetWidgetPositionByElement(UIElement element)
         {
-            public int Row { get; init; }
-
-            public int Column { get; init; }
-
-            public int RowSpan { get; set; } = 1;
-
-            public int ColumnSpan { get; set; } = 1;
-
-            public static WidgetPosition GetWidgetPositionByElement(UIElement element)
+            var row = Grid.GetRow(element);
+            var column = Grid.GetColumn(element);
+            var rowSpan = Grid.GetRowSpan(element);
+            var columnSpan = Grid.GetColumnSpan(element);
+            return new WidgetPosition()
             {
-                var row = Grid.GetRow(element);
-                var column = Grid.GetColumn(element);
-                var rowSpan = Grid.GetRowSpan(element);
-                var columnSpan = Grid.GetColumnSpan(element);
-                return new WidgetPosition()
-                {
-                    Row = row,
-                    Column = column,
-                    RowSpan = rowSpan,
-                    ColumnSpan = columnSpan
-                };
-            }
-
-            public void SetWidgetPosition(UIElement element)
-            {
-                element.SetValue(Grid.RowProperty, Row);
-                element.SetValue(Grid.RowSpanProperty, RowSpan);
-                element.SetValue(Grid.ColumnProperty, Column);
-                element.SetValue(Grid.ColumnSpanProperty, ColumnSpan);
-            }
+                Row = row,
+                Column = column,
+                RowSpan = rowSpan,
+                ColumnSpan = columnSpan
+            };
         }
     }
 }

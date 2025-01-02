@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using DragNDropTask.Dashboards;
 
 namespace DragNDropTask
 {
@@ -90,12 +88,12 @@ namespace DragNDropTask
             return layouts;
         }
 
-        public static ObservableCollection<WidgetViewModel>? CreateDefaultItemsSource()
+        public static ObservableCollection<WidgetViewModel> CreateDefaultItemsSource()
         {
             ObservableCollection<WidgetViewModel> widgets = new();
-            const int NUMBER_OF_OBJECTS = 5;
+            const int numberOfObjects = 5;
 
-            for (int i = 0; i < NUMBER_OF_OBJECTS; i++)
+            for (int i = 0; i < numberOfObjects; i++)
             {
                 Random rand = new();
                 widgets.Add(new WidgetViewModel()
@@ -113,6 +111,14 @@ namespace DragNDropTask
             }
 
             return widgets;
+        }
+
+        public static void SetWidgetPositionOnDashboard(this UIElement element, WidgetPosition position)
+        {
+            element.SetValue(Grid.RowProperty, position.Row);
+            element.SetValue(Grid.RowSpanProperty, position.RowSpan);
+            element.SetValue(Grid.ColumnProperty, position.Column);
+            element.SetValue(Grid.ColumnSpanProperty, position.ColumnSpan);
         }
     }
 }
