@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Shapes;
 
 namespace DragNDropTask.Dashboards
 {
@@ -127,16 +128,27 @@ namespace DragNDropTask.Dashboards
         private void AddElementToDashboard(WidgetPosition position, object item)
         {
             if (DashboardRoot == null || 
-                item is not WidgetViewModel { Content: UIElement element })
+                item is not WidgetViewModel widgetViewModel)
             {
                 return;
             }
 
             ContentControl contentControl = new();
 
-            DragDropHelper?.Register(contentControl);
             contentControl.SetWidgetPositionOnDashboard(position);
-            contentControl.Content = element;
+            DragDropHelper?.Register(contentControl);
+
+            if (widgetViewModel.Content is UIElement element)
+            {
+                contentControl.Content = element;
+            }
+            else
+            {
+                contentControl.Content = new TextBlock()
+                {
+                    Text = "NULL VIEWMODEL CONTENT'S VALUE"
+                };
+            }
 
             Binding itemTemplateBinding = new(nameof(ItemTemplate))
             {

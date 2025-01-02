@@ -110,6 +110,8 @@ namespace DragNDropTask
                 });
             }
 
+            widgets[1].Content = null;
+
             return widgets;
         }
 
