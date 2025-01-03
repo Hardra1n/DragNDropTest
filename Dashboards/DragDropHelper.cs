@@ -6,10 +6,13 @@ namespace DragNDropTask.Dashboards;
 
 internal class DragDropHelper
 {
-    private DependencyObject _dragSource;
-    public DragDropHelper(DependencyObject dragSource)
+    private readonly DependencyObject _dragSource;
+    private readonly Action<UIElement, UIElement> _dropEndActionHook;
+
+    public DragDropHelper(DependencyObject dragSource, Action<UIElement, UIElement> dropEndActionHook)
     {
         _dragSource = dragSource;
+        _dropEndActionHook = dropEndActionHook;
     }
 
     public void Register(UIElement element)
@@ -30,6 +33,16 @@ internal class DragDropHelper
         element.DragLeave -= OnDragLeave;
     }
 
+    public void ApplyDragEffect(UIElement element)
+    {
+        element.Effect = new DropShadowEffect();
+    }
+
+    private void RefrainDragEffect(UIElement element)
+    {
+        element.Effect = null;
+    }
+
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
@@ -38,34 +51,40 @@ internal class DragDropHelper
             return;
         }
 
-        if (e.LeftButton == MouseButtonState.Pressed)
+        if (e.LeftButton != MouseButtonState.Pressed)
         {
-            var data = new DataObject(typeof(UIElement), element);
-            DragDrop.DoDragDrop(_dragSource, data, DragDropEffects.Move);
+            return;
         }
+
+        var data = new DataObject(typeof(UIElement), element);
+
+        DragDrop.DoDragDrop(_dragSource, data, DragDropEffects.Move);
     }
 
     private void OnDrop(object sender, DragEventArgs e)
     {
-        if (sender is not UIElement element)
+        if (sender is not UIElement targetElement)
         {
             return;
         }
 
-        var sourceElem = e.Data.GetData(typeof(UIElement)) as UIElement;
-        if (sourceElem == null)
+        if (e.Data.GetData(typeof(UIElement)) is not UIElement sourceElem)
         {
             return;
         }
 
-        var positionDest = WidgetPosition.GetWidgetPositionByElement(element);
+        var positionDest = WidgetPosition.GetWidgetPositionByElement(targetElement);
+
         var positionSource = WidgetPosition.GetWidgetPositionByElement(sourceElem);
 
 
         sourceElem.SetWidgetPositionOnDashboard(positionDest);
-        element.SetWidgetPositionOnDashboard(positionSource);
+        targetElement.SetWidgetPositionOnDashboard(positionSource);
 
-        element.Effect = null;
+        
+        _dropEndActionHook.Invoke(sourceElem, targetElement);
+
+        RefrainDragEffect(targetElement);
     }
 
     private void OnEnter(object sender, DragEventArgs e)
@@ -75,7 +94,7 @@ internal class DragDropHelper
             return;
         }
 
-        element.Effect = new DropShadowEffect();
+        ApplyDragEffect(element);
     }
 
     private void OnDragLeave(object sender, DragEventArgs e)
@@ -85,6 +104,6 @@ internal class DragDropHelper
             return;
         }
 
-        element.Effect = null;
+        RefrainDragEffect(element);
     }
 }

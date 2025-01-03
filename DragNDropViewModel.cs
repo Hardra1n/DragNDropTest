@@ -1,4 +1,7 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Windows;
 
 namespace DragNDropTask
 {
@@ -6,12 +9,14 @@ namespace DragNDropTask
     {
         private LayoutSetting? _selectedLayoutSetting;
         private MyCommand? _selectLayoutSettingCommand;
+        private MyCommand? _changePositionIndexesCommand;
 
         public DragNDropViewModel()
         {
             LayoutSettings = Extensions.CreateDefaultLayouts();
             ItemsSource = Extensions.CreateDefaultItemsSource();
         }
+
 
         public ObservableCollection<WidgetViewModel> ItemsSource { get; set; } 
         public ObservableCollection<LayoutSetting> LayoutSettings { get; set; }
@@ -44,6 +49,34 @@ namespace DragNDropTask
                     });
                 return _selectLayoutSettingCommand;
             }
+        }
+
+        public MyCommand ChangePositionIndexesCommand
+        {
+            get
+            {
+                _changePositionIndexesCommand ??= new MyCommand(
+                    (obj) =>
+                    {
+                        if (obj is not PositionIndexesPair pair ||
+                            pair.SourcePosition < 0 || pair.SourcePosition >= ItemsSource.Count ||
+                            pair.TargetPosition < 0 || pair.TargetPosition >= ItemsSource.Count ||
+                            pair.SourcePosition == pair.TargetPosition)
+                        {
+                            return;
+                        }
+
+                        (ItemsSource[pair.SourcePosition].PosIndex, ItemsSource[pair.TargetPosition].PosIndex)
+                            = (ItemsSource[pair.TargetPosition].PosIndex, ItemsSource[pair.SourcePosition].PosIndex);
+                    }
+                    );
+                return _changePositionIndexesCommand;
+            }
+        }
+
+        public MyCommand TempCommand
+        {
+            get => new MyCommand((obj) => MessageBox.Show("Temp"));
         }
     }
 }

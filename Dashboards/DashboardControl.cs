@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Shapes;
 
 namespace DragNDropTask.Dashboards
 {
-    [TemplatePart(Name = DashboardRootName, Type =  typeof(Grid))]
+    [TemplatePart(Name = DashboardRootName, Type = typeof(Grid))]
     public class DashboardControl : Control
     {
         private const string DashboardRootName = "DashboardRoot";
@@ -16,17 +17,35 @@ namespace DragNDropTask.Dashboards
                 new PropertyMetadata(null, OnLayoutSettingChanged));
 
         public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
-            nameof(ItemsSource), typeof(IEnumerable), typeof(DashboardControl), new PropertyMetadata(default(IEnumerable)));
+            nameof(ItemsSource), typeof(IEnumerable), typeof(DashboardControl),
+            new PropertyMetadata(default(IEnumerable), OnItemsSourceChanged));
+
 
         public static readonly DependencyProperty ItemTemplateProperty = DependencyProperty.Register(
-            nameof(ItemTemplate), typeof(DataTemplate), typeof(DashboardControl), new PropertyMetadata(default(DataTemplate)));
+            nameof(ItemTemplate), typeof(DataTemplate), typeof(DashboardControl),
+            new PropertyMetadata(default(DataTemplate)));
+
+        public delegate void PositionsSwappedRoutedEventHandler(object sender, PositionsSwappedRoutedEventArgs routedEventArgs);
+        
+        public static readonly RoutedEvent PositionsSwappedRoutedEvent 
+            = EventManager.RegisterRoutedEvent(
+                nameof(PositionsSwapped), 
+                RoutingStrategy.Bubble, 
+                typeof(PositionsSwappedRoutedEventHandler), 
+                typeof(DashboardControl));
+
+
+        public event PositionsSwappedRoutedEventHandler PositionsSwapped
+        {
+            add => AddHandler(PositionsSwappedRoutedEvent, value);
+            remove => RemoveHandler(PositionsSwappedRoutedEvent, value);
+        }
 
         public DataTemplate ItemTemplate
         {
             get => (DataTemplate)GetValue(ItemTemplateProperty);
             set => SetValue(ItemTemplateProperty, value);
         }
-
 
         public LayoutSetting LayoutSetting
         {
@@ -41,7 +60,7 @@ namespace DragNDropTask.Dashboards
         }
 
         private Grid? DashboardRoot { get; set; }
-        
+
         private DragDropHelper? DragDropHelper { get; set; }
 
 
@@ -52,19 +71,19 @@ namespace DragNDropTask.Dashboards
             {
                 dashboardControl.HandleLayoutSettingsChanged(e);
             }
+            
+        }
+        private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Console.WriteLine();
+            if (d is DashboardControl dashboardControl)
+            {
+                dashboardControl.HandleItemsSourceChanged(e);
+            }
         }
 
-        public override void OnApplyTemplate()
+        private void HandleItemsSourceChanged(DependencyPropertyChangedEventArgs ea)
         {
-            base.OnApplyTemplate();
-            if (GetTemplateChild(DashboardRootName) is not Grid dashboardRoot)
-            {
-                throw new ArgumentException($"Unable to find grid with '{DashboardRootName}' name");
-            }
-
-
-            DashboardRoot = dashboardRoot;
-            DragDropHelper = new DragDropHelper(DashboardRoot);
         }
 
         private void HandleLayoutSettingsChanged(DependencyPropertyChangedEventArgs ea)
@@ -91,12 +110,11 @@ namespace DragNDropTask.Dashboards
             }
 
             var itemEnumerator = ItemsSource.GetEnumerator();
-            for (int i = 0; i < positions.Length && itemEnumerator.MoveNext(); i++)
+            while (itemEnumerator.MoveNext())
             {
-                var item = itemEnumerator.Current;
-                if (item != null)
+                if (itemEnumerator.Current is WidgetViewModel widgetVm)
                 {
-                    AddElementToDashboard(positions[i], item);
+                    AddElementToDashboard(widgetVm);
                 }
             }
 
@@ -104,6 +122,34 @@ namespace DragNDropTask.Dashboards
             {
                 disposable.Dispose();
             }
+        }
+
+        private void HandleAfterDrop(UIElement sourceElement, UIElement targetElement)
+        {
+            var positions = GetPositionsByLayoutSettings();
+            var sourceElementPosition = WidgetPosition.GetWidgetPositionByElement(sourceElement);
+            var targetElementPosition = WidgetPosition.GetWidgetPositionByElement(targetElement);
+            var sourceElementIndex = Array.FindIndex(positions, p => p.Equals(sourceElementPosition));
+            var targetElementIndex = Array.FindIndex(positions, p => p.Equals(targetElementPosition));
+            
+            
+            RaiseEvent(new PositionsSwappedRoutedEventArgs(PositionsSwappedRoutedEvent, this)
+            {
+                Positions = new(sourceElementIndex, targetElementIndex)
+            });
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            if (GetTemplateChild(DashboardRootName) is not Grid dashboardRoot)
+            {
+                throw new ArgumentException($"Unable to find grid with '{DashboardRootName}' name");
+            }
+
+
+            DashboardRoot = dashboardRoot;
+            DragDropHelper = new DragDropHelper(DashboardRoot, HandleAfterDrop);
         }
 
         private void ClearCurrentLayoutInformation()
@@ -122,20 +168,26 @@ namespace DragNDropTask.Dashboards
                     DragDropHelper?.Unregister(element);
                 }
             }
+
             DashboardRoot.Children.RemoveRange(0, DashboardRoot.Children.Count);
         }
 
-        private void AddElementToDashboard(WidgetPosition position, object item)
+        private void AddElementToDashboard(WidgetViewModel widgetViewModel)
         {
-            if (DashboardRoot == null || 
-                item is not WidgetViewModel widgetViewModel)
+            if (DashboardRoot == null)
             {
                 return;
             }
 
             ContentControl contentControl = new();
+            var widgetPosition = GetPositionsByLayoutSettings().ElementAtOrDefault(widgetViewModel.PosIndex);
 
-            contentControl.SetWidgetPositionOnDashboard(position);
+            if (widgetPosition == null)
+            {
+                return;
+            }
+
+            contentControl.SetWidgetPositionOnDashboard(widgetPosition);
             DragDropHelper?.Register(contentControl);
 
             if (widgetViewModel.Content is UIElement element)
@@ -156,10 +208,8 @@ namespace DragNDropTask.Dashboards
             };
             contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
 
-            DashboardRoot.Children.Add(contentControl);
+            DashboardRoot?.Children.Add(contentControl);
         }
-
-
 
         private WidgetPosition[] GetPositionsByLayoutSettings()
         {
@@ -237,6 +287,22 @@ namespace DragNDropTask.Dashboards
                 RowSpan = rowSpan,
                 ColumnSpan = columnSpan
             };
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is not WidgetPosition wp)
+            {
+                return false;
+            }
+
+            return wp.Row == Row && wp.Column == Column && wp.RowSpan == RowSpan && wp.ColumnSpan == ColumnSpan;
+
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Row, Column, RowSpan, ColumnSpan);
         }
     }
 }

@@ -90,7 +90,7 @@ namespace DragNDropTask
 
         public static ObservableCollection<WidgetViewModel> CreateDefaultItemsSource()
         {
-            ObservableCollection<WidgetViewModel> widgets = new();
+            MyObservableCollection<WidgetViewModel> widgets = new();
             const int numberOfObjects = 5;
 
             for (int i = 0; i < numberOfObjects; i++)
