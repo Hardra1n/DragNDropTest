@@ -1,4 +1,6 @@
-﻿namespace DragNDropTask
+﻿using System.ComponentModel;
+
+namespace DragNDropTask
 {
     internal class WidgetViewModel : ViewModelBase
     {

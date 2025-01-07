@@ -30,8 +30,11 @@
         </DataTemplate>
 
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">
-            <Grid Name="DashboardRoot" ShowGridLines="True"></Grid>
+            <Grid Name="DashboardRoot" ShowGridLines="True">
+
+            </Grid>
         </ControlTemplate>
+        <local:PositionIndexPairConverter x:Key="PositionIndexPairConverter" />
 
     </Window.Resources>
     <Grid>
@@ -45,6 +48,21 @@
                           ItemsSource="{Binding LayoutSettings}"/>
             <TextBlock>Selected scheme:</TextBlock>
             <TextBlock Text="{Binding Path= SelectedLayoutSetting.Name}"></TextBlock>
+            <StackPanel>
+                <TextBox x:Name="PosIndex1">0</TextBox>
+                <TextBox x:Name="PosIndex2">1</TextBox>
+                <Button Height="20" Command="{Binding Path=ChangePositionIndexesCommand}">
+                    <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource PositionIndexPairConverter}">
+                            <Binding ElementName="PosIndex1" Path="Text"></Binding>
+                            <Binding ElementName="PosIndex2" Path="Text"></Binding>
+                        </MultiBinding>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <Button Command="{Binding AddRectangleToItemsSourceCommand}">
+                <Button.Content>Add new rectangle</Button.Content>
+            </Button>
         </StackPanel>
         <dashboards:DashboardControl 
             ItemTemplate="{StaticResource DashboardItemTemplate}"
@@ -52,6 +70,14 @@
             Template="{StaticResource DashboardTemplate}"
             LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
             Grid.Column="1">
+
+            <behaviours:Interaction.Triggers>
+                <behaviours:EventTrigger EventName="PositionsSwapped">
+                    <behaviours:InvokeCommandAction Command="{Binding PositionsSwappedHandlingCommand}"
+                                                    PassEventArgsToCommand="True">
+                    </behaviours:InvokeCommandAction>
+                </behaviours:EventTrigger>
+            </behaviours:Interaction.Triggers>
         </dashboards:DashboardControl>
     </Grid>
 </Window>

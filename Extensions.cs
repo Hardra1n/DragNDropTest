@@ -90,29 +90,33 @@ namespace DragNDropTask
 
         public static ObservableCollection<WidgetViewModel> CreateDefaultItemsSource()
         {
-            ObservableCollection<WidgetViewModel> widgets = new();
+            MyObservableCollection<WidgetViewModel> widgets = new();
             const int numberOfObjects = 5;
 
             for (int i = 0; i < numberOfObjects; i++)
             {
-                Random rand = new();
                 widgets.Add(new WidgetViewModel()
                 {
                     PosIndex = i, 
-                    Content = new Rectangle()
-                    {
-                        Fill = new SolidColorBrush(Color.FromRgb(
-                            (byte)rand.Next(256), 
-                            (byte)rand.Next(256), 
-                            (byte)rand.Next(256)))
-                    }
-
+                    Content = CreateRandomFilledRectangle()
                 });
             }
 
             widgets[1].Content = null;
 
             return widgets;
+        }
+
+        public static Rectangle CreateRandomFilledRectangle()
+        {
+            Random rand = new();
+            return new Rectangle()
+            {
+                Fill = new SolidColorBrush(Color.FromRgb(
+                    (byte)rand.Next(256),
+                    (byte)rand.Next(256),
+                    (byte)rand.Next(256)))
+            };
         }
 
         public static void SetWidgetPositionOnDashboard(this UIElement element, WidgetPosition position)
