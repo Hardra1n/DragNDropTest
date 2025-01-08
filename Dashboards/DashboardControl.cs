@@ -17,11 +17,11 @@ namespace DragNDropTask.Dashboards
 
         public static readonly DependencyProperty LayoutSettingProperty
             = DependencyProperty.Register(nameof(LayoutSetting), typeof(LayoutSetting), typeof(DashboardControl),
-                new PropertyMetadata(null, OnLayoutSettingChanged));
+                new PropertyMetadata(null, LayoutSettingChangedCallback));
 
         public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
             nameof(ItemsSource), typeof(IEnumerable), typeof(DashboardControl),
-            new PropertyMetadata(default(IEnumerable), OnItemsSourceChanged));
+            new PropertyMetadata(default(IEnumerable), ItemsSourceChangedCallback));
         
 
         public static readonly DependencyProperty ItemTemplateProperty = DependencyProperty.Register(
@@ -70,7 +70,7 @@ namespace DragNDropTask.Dashboards
 
 
 
-        private static void OnLayoutSettingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void LayoutSettingChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is DashboardControl dashboardControl)
             {
@@ -78,7 +78,7 @@ namespace DragNDropTask.Dashboards
             }
         }
 
-        private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void ItemsSourceChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is DashboardControl dashboardControl)
             {
