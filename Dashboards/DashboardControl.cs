@@ -66,7 +66,7 @@ namespace DragNDropTask.Dashboards
 
         private DragDropHelper? DragDropHelper { get; set; }
 
-        private Dictionary<UIElement, WidgetViewModel> ContentItemsDictionary { get; set; } = new();
+        private Dictionary<WidgetViewModel, UIElement> ContentItemsDictionary { get; set; } = new();
 
 
 
@@ -138,7 +138,6 @@ namespace DragNDropTask.Dashboards
             var itemEnumerator = ItemsSource.GetEnumerator();
             while (itemEnumerator.MoveNext())
             {
-
                 if (itemEnumerator.Current is not WidgetViewModel widgetViewModel)
                 {
                     continue;
@@ -146,14 +145,19 @@ namespace DragNDropTask.Dashboards
 
                 var widgetPosition = GetPositionsByLayoutSettings().ElementAtOrDefault(widgetViewModel.PosIndex);
 
-                if (widgetPosition == null)
+                if (!ContentItemsDictionary.TryGetValue(widgetViewModel, out var widget))
                 {
-                    return;
+                    continue;
                 }
-
-                ContentItemsDictionary
-                    .FirstOrDefault(pair => pair.Value == widgetViewModel).Key?
-                    .SetWidgetPositionOnDashboard(widgetPosition);
+                
+                if (widgetPosition != null)
+                {
+                    widget.SetWidgetPositionOnDashboard(widgetPosition);
+                }
+                else
+                {
+                    widget.UnsetWidgetPositionOnDashboard();
+                }
             }
 
             if (itemEnumerator is IDisposable disposable)
@@ -270,20 +274,20 @@ namespace DragNDropTask.Dashboards
             contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
 
             DashboardRoot.Children.Add(contentControl);
-            ContentItemsDictionary.Add(contentControl, widgetViewModel);
+            ContentItemsDictionary.Add(widgetViewModel, contentControl);
         }
 
 
         private void RemoveElementFromDashboard(WidgetViewModel widgetViewModel)
         {
-            var elementToDelete =
-                ContentItemsDictionary.FirstOrDefault((pair => pair.Value == widgetViewModel)).Key;
-            if (elementToDelete != null)
+            if (!ContentItemsDictionary.TryGetValue(widgetViewModel, out UIElement? elementToDelete) || elementToDelete == null)
             {
-                DragDropHelper?.Unregister(elementToDelete);
-                DashboardRoot?.Children.Remove(elementToDelete);
-                ContentItemsDictionary.Remove(elementToDelete);
+                return;
             }
+
+            DragDropHelper?.Unregister(elementToDelete);
+            DashboardRoot?.Children.Remove(elementToDelete);
+            ContentItemsDictionary.Remove(widgetViewModel);
         }
 
         private WidgetPosition[] GetPositionsByLayoutSettings()

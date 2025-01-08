@@ -125,6 +125,13 @@ namespace DragNDropTask
             element.SetValue(Grid.RowSpanProperty, position.RowSpan);
             element.SetValue(Grid.ColumnProperty, position.Column);
             element.SetValue(Grid.ColumnSpanProperty, position.ColumnSpan);
+            element.Visibility = Visibility.Visible;
+            //MessageBox.Show($"{position.Row} {position.RowSpan} {position.Column} {position.ColumnSpan}");
+        }
+
+        public static void UnsetWidgetPositionOnDashboard(this UIElement element)
+        {
+            element.Visibility = Visibility.Hidden;
         }
     }
 }
