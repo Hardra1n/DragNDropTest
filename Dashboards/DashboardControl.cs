@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Microsoft.Xaml.Behaviors;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -7,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace DragNDropTask.Dashboards
@@ -17,6 +19,8 @@ namespace DragNDropTask.Dashboards
         private const string DashboardRootName = "DashboardRoot";
 
         private MyCommand? _startDragNDropCommand;
+        
+        private MyCommand? _swapElementsCommand;
 
         public static readonly DependencyProperty LayoutSettingProperty
             = DependencyProperty.Register(nameof(LayoutSetting), typeof(LayoutSetting), typeof(DashboardControl),
@@ -102,29 +106,17 @@ namespace DragNDropTask.Dashboards
         //    }
         //}
 
-        public MyCommand StartDragNDropCommand
+        public MyCommand SwapElementsCommand
         {
             get
             {
-                _startDragNDropCommand ??= new MyCommand(
+                _swapElementsCommand ??= new MyCommand(
                     (arg) =>
-                    {
-                        if (arg is not int positionIndex || DragDropHelper == null)
-                        {
-                            return;
-                        }
+                {
+                    MessageBox.Show(arg.ToString());
+                });
 
-                        WidgetViewModel? widgetToDrag = ContentItemsDictionary.Keys.FirstOrDefault(widget => widget.PosIndex == positionIndex);
-                        if (widgetToDrag == null)
-                        {
-                            return;
-                        }
-
-                        DragDropHelper.StartDragDrop(ContentItemsDictionary[widgetToDrag]);
-                        return;
-
-                    });
-                return _startDragNDropCommand;
+                return _swapElementsCommand;
             }
         }
 
@@ -275,7 +267,7 @@ namespace DragNDropTask.Dashboards
 
 
             DashboardRoot = dashboardRoot;
-            DragDropHelper = new DragDropHelper(DashboardRoot, HandleAfterDrop);
+            //DragDropHelper = new DragDropHelper(DashboardRoot, HandleAfterDrop);
             PopulateRoot();
         }
 
@@ -330,6 +322,15 @@ namespace DragNDropTask.Dashboards
             };
             contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
             contentControl.DataContext = widgetViewModel;
+
+
+            var dragNDropBehavior = new DragNDropElementBehaviour
+            {
+                SwapElementsCommand = SwapElementsCommand,
+                ElementToDrop = contentControl
+            };
+
+            Interaction.GetBehaviors(contentControl).Add(dragNDropBehavior);
 
             DashboardRoot.Children.Add(contentControl);
             ContentItemsDictionary.Add(widgetViewModel, contentControl);

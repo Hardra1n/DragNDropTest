@@ -37,14 +37,22 @@
                         <Binding Path="DataContext.PosIndex" RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}" StringFormat="Header {0}"/>
                     </TextBlock.Text>
                     <behaviours:Interaction.Behaviors>
-                        <local:StartDragNDropBehaviour 
-                            StartDragNDropCommand="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}, Path= StartDragNDropCommand}"
-                            PositionIndex="{Binding Path=DataContext.PosIndex, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"/>                        
+                        <local:StartDragNDropBehavior2 ElementToDrag="{Binding }"/>
                     </behaviours:Interaction.Behaviors>
                 </TextBlock>
-                <ContentControl Grid.Row="1" Content="{Binding }">
-                    
+                <ContentControl Grid.Row="1">
+                    <ContentControl.Content>
+                        <Binding/>
+
+                    </ContentControl.Content>
                 </ContentControl>
+
+
+                <!--<behaviours:Interaction.Behaviors>
+                    <local:DragNDropElementBehaviour 
+                        SwapElementsCommand="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}, Path= SwapElementsCommand}"
+                        ElementToDrop="{Binding }"/>
+                </behaviours:Interaction.Behaviors>-->
             </Grid>
         </DataTemplate>
 
