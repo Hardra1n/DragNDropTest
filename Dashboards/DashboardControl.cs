@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Shapes;
 
 namespace DragNDropTask.Dashboards
@@ -14,6 +15,8 @@ namespace DragNDropTask.Dashboards
     public class DashboardControl : Control
     {
         private const string DashboardRootName = "DashboardRoot";
+
+        private MyCommand? _startDragNDropCommand;
 
         public static readonly DependencyProperty LayoutSettingProperty
             = DependencyProperty.Register(nameof(LayoutSetting), typeof(LayoutSetting), typeof(DashboardControl),
@@ -36,6 +39,7 @@ namespace DragNDropTask.Dashboards
                 RoutingStrategy.Bubble, 
                 typeof(PositionsSwappedRoutedEventHandler), 
                 typeof(DashboardControl));
+
 
 
         public event PositionsSwappedRoutedEventHandler PositionsSwapped
@@ -68,7 +72,61 @@ namespace DragNDropTask.Dashboards
 
         private Dictionary<WidgetViewModel, UIElement> ContentItemsDictionary { get; set; } = new();
 
+        //public MyCommand StartDragNDropCommand
+        //{
+        //    get
+        //    {
+        //        _startDragNDropCommand ??= new MyCommand(
+        //            (arg) =>
+        //            {
+        //                if (arg is not CompositeCommandParameter compositeParam ||
+        //                    compositeParam.EventArgs is not MouseEventArgs mouseEventArgs ||
+        //                    mouseEventArgs.LeftButton != MouseButtonState.Pressed || 
+        //                    compositeParam.Parameter is not int positionIndex || 
+        //                    DragDropHelper == null)
+        //                {
+        //                    return;
+        //                }
 
+        //                WidgetViewModel? widgetToDrag = ContentItemsDictionary.Keys.FirstOrDefault(widget => widget.PosIndex == positionIndex);
+        //                if (widgetToDrag == null)
+        //                {
+        //                    return;
+        //                }
+
+        //                DragDropHelper.StartDragDrop(ContentItemsDictionary[widgetToDrag]);
+        //                return;
+
+        //            });
+        //        return _startDragNDropCommand;
+        //    }
+        //}
+
+        public MyCommand StartDragNDropCommand
+        {
+            get
+            {
+                _startDragNDropCommand ??= new MyCommand(
+                    (arg) =>
+                    {
+                        if (arg is not int positionIndex || DragDropHelper == null)
+                        {
+                            return;
+                        }
+
+                        WidgetViewModel? widgetToDrag = ContentItemsDictionary.Keys.FirstOrDefault(widget => widget.PosIndex == positionIndex);
+                        if (widgetToDrag == null)
+                        {
+                            return;
+                        }
+
+                        DragDropHelper.StartDragDrop(ContentItemsDictionary[widgetToDrag]);
+                        return;
+
+                    });
+                return _startDragNDropCommand;
+            }
+        }
 
         private static void LayoutSettingChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -88,7 +146,6 @@ namespace DragNDropTask.Dashboards
 
         private void HandleItemsSourceChanged(DependencyPropertyChangedEventArgs e)
         {
-
             if (e.NewValue is ObservableCollection<WidgetViewModel> observableCollection)
             {
                 observableCollection.CollectionChanged += HandleItemsCollectionChanged;
@@ -272,6 +329,7 @@ namespace DragNDropTask.Dashboards
                 Source = this
             };
             contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
+            contentControl.DataContext = widgetViewModel;
 
             DashboardRoot.Children.Add(contentControl);
             ContentItemsDictionary.Add(widgetViewModel, contentControl);

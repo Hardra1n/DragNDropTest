@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Effects;
 
@@ -19,7 +20,7 @@ internal class DragDropHelper
     {
 
         element.AllowDrop = true;
-        element.MouseMove += OnMouseMove;
+        //element.MouseMove += OnMouseMove;
         element.DragEnter += OnEnter;
         element.Drop += OnDrop;
         element.DragLeave += OnDragLeave;
@@ -27,7 +28,7 @@ internal class DragDropHelper
 
     public void Unregister(UIElement element)
     {
-        element.MouseMove -= OnMouseMove;
+        //element.MouseMove -= OnMouseMove;
         element.DragEnter -= OnEnter;
         element.Drop -= OnDrop;
         element.DragLeave -= OnDragLeave;
@@ -67,7 +68,7 @@ internal class DragDropHelper
         {
             return;
         }
-
+        var elem = e.Data.GetData(typeof(UIElement));
         if (e.Data.GetData(typeof(UIElement)) is not UIElement sourceElem)
         {
             return;
@@ -105,5 +106,12 @@ internal class DragDropHelper
         }
 
         RefrainDragEffect(element);
+    }
+
+    public void StartDragDrop(UIElement element)
+    {
+        DataObject dataObj = new();
+        dataObj.SetData(typeof(UIElement), element);
+        DragDrop.DoDragDrop(_dragSource, dataObj, DragDropEffects.Move);
     }
 }

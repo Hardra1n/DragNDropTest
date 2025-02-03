@@ -26,7 +26,26 @@
         </DataTemplate>
 
         <DataTemplate x:Key="DashboardItemTemplate" DataType="{x:Type ContentControl}">
-            <ContentControl Margin="10" Content="{Binding }"></ContentControl>
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0">
+                    <TextBlock.Text>
+                        <Binding Path="DataContext.PosIndex" RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}" StringFormat="Header {0}"/>
+                    </TextBlock.Text>
+                    <behaviours:Interaction.Behaviors>
+                        <local:StartDragNDropBehaviour 
+                            StartDragNDropCommand="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}, Path= StartDragNDropCommand}"
+                            PositionIndex="{Binding Path=DataContext.PosIndex, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"/>                        
+                    </behaviours:Interaction.Behaviors>
+                </TextBlock>
+                <ContentControl Grid.Row="1" Content="{Binding }">
+                    
+                </ContentControl>
+            </Grid>
         </DataTemplate>
 
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">

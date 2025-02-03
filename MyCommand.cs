@@ -2,7 +2,7 @@
 
 namespace DragNDropTask
 {
-    internal class MyCommand : ICommand
+    public class MyCommand : ICommand
     {
         private readonly Action<object?> _execute;
         private readonly Func<object?, bool>? _canExecute;
