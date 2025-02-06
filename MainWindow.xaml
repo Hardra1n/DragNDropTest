@@ -26,34 +26,41 @@
         </DataTemplate>
 
         <DataTemplate x:Key="DashboardItemTemplate" DataType="{x:Type ContentControl}">
-            <Grid Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock
+            <Border>
+
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock
                     Grid.Row="0">
-                    <TextBlock.Text>
-                        <Binding Path="DataContext.PosIndex" RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}" StringFormat="Header {0}"/>
-                    </TextBlock.Text>
+                        <TextBlock.Text>
+                            <Binding Path="DataContext.PosIndex" RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}" StringFormat="Header {0}"/>
+                        </TextBlock.Text>
                     <behaviours:Interaction.Behaviors>
-                        <local:StartDragNDropBehavior2 ElementToDrag="{Binding }"/>
+                        <local:DragStartElementBehavior 
+                            PositionIndex ="{Binding Path=DataContext.PosIndex, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"
+                            IsDragEnabled="True"/>
                     </behaviours:Interaction.Behaviors>
-                </TextBlock>
-                <ContentControl Grid.Row="1">
-                    <ContentControl.Content>
-                        <Binding/>
+                    </TextBlock>
+                    <ContentControl Grid.Row="1">
+                        <ContentControl.Content>
+                            <Binding/>
+                        </ContentControl.Content>
+                    </ContentControl>
 
-                    </ContentControl.Content>
-                </ContentControl>
+                    <behaviours:Interaction.Behaviors>
+                        <local:DropElementBehaviour 
+                        PositionIndex ="{Binding Path=DataContext.PosIndex}" 
+                        SwapWidgetsCommand="{Binding Path=SwapElementsCommand,
+                                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}}"
+                        MyStackPanel="{Binding ElementName=tempStackPanel}"
+                        MyTextBlock="{Binding ElementName=consoleTextBox}"/>
+                    </behaviours:Interaction.Behaviors>
+                </Grid>
 
-
-                <!--<behaviours:Interaction.Behaviors>
-                    <local:DragNDropElementBehaviour 
-                        SwapElementsCommand="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}, Path= SwapElementsCommand}"
-                        ElementToDrop="{Binding }"/>
-                </behaviours:Interaction.Behaviors>-->
-            </Grid>
+            </Border>
         </DataTemplate>
 
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">
@@ -68,6 +75,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="4*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <ItemsControl x:Name="ItemsControl"
@@ -90,6 +98,15 @@
             <Button Command="{Binding AddRectangleToItemsSourceCommand}">
                 <Button.Content>Add new rectangle</Button.Content>
             </Button>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
+                          VerticalScrollBarVisibility="Visible"
+                          x:Name="Scroller">
+                <TextBlock x:Name="consoleTextBox"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Width="{Binding ElementName=Scroller, Path=ViewportWidth}"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
         </StackPanel>
         <dashboards:DashboardControl 
             ItemTemplate="{StaticResource DashboardItemTemplate}"
@@ -106,5 +123,8 @@
                 </behaviours:EventTrigger>
             </behaviours:Interaction.Triggers>
         </dashboards:DashboardControl>
+        <StackPanel Grid.Column="2" x:Name="tempStackPanel">
+
+        </StackPanel>
     </Grid>
 </Window>

@@ -72,39 +72,7 @@ namespace DragNDropTask.Dashboards
 
         private Grid? DashboardRoot { get; set; }
 
-        private DragDropHelper? DragDropHelper { get; set; }
-
         private Dictionary<WidgetViewModel, UIElement> ContentItemsDictionary { get; set; } = new();
-
-        //public MyCommand StartDragNDropCommand
-        //{
-        //    get
-        //    {
-        //        _startDragNDropCommand ??= new MyCommand(
-        //            (arg) =>
-        //            {
-        //                if (arg is not CompositeCommandParameter compositeParam ||
-        //                    compositeParam.EventArgs is not MouseEventArgs mouseEventArgs ||
-        //                    mouseEventArgs.LeftButton != MouseButtonState.Pressed || 
-        //                    compositeParam.Parameter is not int positionIndex || 
-        //                    DragDropHelper == null)
-        //                {
-        //                    return;
-        //                }
-
-        //                WidgetViewModel? widgetToDrag = ContentItemsDictionary.Keys.FirstOrDefault(widget => widget.PosIndex == positionIndex);
-        //                if (widgetToDrag == null)
-        //                {
-        //                    return;
-        //                }
-
-        //                DragDropHelper.StartDragDrop(ContentItemsDictionary[widgetToDrag]);
-        //                return;
-
-        //            });
-        //        return _startDragNDropCommand;
-        //    }
-        //}
 
         public MyCommand SwapElementsCommand
         {
@@ -113,7 +81,25 @@ namespace DragNDropTask.Dashboards
                 _swapElementsCommand ??= new MyCommand(
                     (arg) =>
                 {
-                    MessageBox.Show(arg.ToString());
+                    if (arg is not List<int> indexes || indexes.Count != 2)
+                    {
+                        MessageBox.Show("Unexpected behave");
+                        return;
+                    }
+
+                    var targetWidgetViewModel = ContentItemsDictionary.Keys.First(wvm => wvm.PosIndex == indexes[0]);
+                    var sourceWidgetViewModel = ContentItemsDictionary.Keys.First(wvm => wvm.PosIndex == indexes[1]);
+
+                    var targetElement = ContentItemsDictionary[targetWidgetViewModel];
+                    var sourceElem = ContentItemsDictionary[sourceWidgetViewModel];
+
+                    var positionDest = WidgetPosition.GetWidgetPositionByElement(targetElement);
+                    var positionSource = WidgetPosition.GetWidgetPositionByElement(sourceElem);
+
+
+                    sourceElem.SetWidgetPositionOnDashboard(positionDest);
+                    targetElement.SetWidgetPositionOnDashboard(positionSource);
+
                 });
 
                 return _swapElementsCommand;
@@ -316,21 +302,35 @@ namespace DragNDropTask.Dashboards
                 };
             }
 
-            Binding itemTemplateBinding = new(nameof(ItemTemplate))
-            {
-                Source = this
-            };
-            contentControl.SetBinding(ContentControl.ContentTemplateProperty, itemTemplateBinding);
+            contentControl.ContentTemplate = ItemTemplate;
             contentControl.DataContext = widgetViewModel;
 
 
-            var dragNDropBehavior = new DragNDropElementBehaviour
-            {
-                SwapElementsCommand = SwapElementsCommand,
-                ElementToDrop = contentControl
-            };
+            //contentControl.DataContext = widgetViewModel;
 
-            Interaction.GetBehaviors(contentControl).Add(dragNDropBehavior);
+
+            //var dragNDropBehavior = new DragNDropElementBehaviour
+            //{
+            //    SwapElementsCommand = SwapElementsCommand,
+            //    ElementToDrop = contentControl
+            //};
+
+            //var dropBehavior = new DropElementBehaviour()
+            //{
+            //    PositionIndex = widgetViewModel.PosIndex,
+            //    SwapWidgetsCommand = SwapElementsCommand
+            //};
+
+            ////Binding binding = new()
+            ////{
+            ////    Source = Extensions.FindAncestor<Window>(this),
+            ////    Path = new PropertyPath("DataContext.ChangePositionIndexesCommand")
+            ////};
+
+            ////BindingOperations.SetBinding(dropBehavior, DropElementBehaviour.SwapWidgetsCommandProperty, binding);
+
+
+            //Interaction.GetBehaviors(contentControl).Add(dropBehavior);
 
             DashboardRoot.Children.Add(contentControl);
             ContentItemsDictionary.Add(widgetViewModel, contentControl);

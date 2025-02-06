@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using NLog;
 
 namespace DragNDropTask
 {
@@ -7,6 +8,11 @@ namespace DragNDropTask
     /// </summary>
     public partial class App : Application
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+        public App()
+        {
+            logger.Info("app started");
+        }
     }
 
 }

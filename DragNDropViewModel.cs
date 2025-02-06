@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 
 namespace DragNDropTask
@@ -16,10 +17,10 @@ namespace DragNDropTask
         {
             LayoutSettings = Extensions.CreateDefaultLayouts();
             ItemsSource = Extensions.CreateDefaultItemsSource();
-            ItemsSource.CollectionChanged += ((sender, args) => MessageBox.Show("Resource changed"));
+            //ItemsSource.CollectionChanged += ((sender, args) => MessageBox.Show("Resource changed"));
         }
 
-
+        public StackPanel MyStackPanel { get; set; }
         public ObservableCollection<WidgetViewModel> ItemsSource { get; set; } 
         public ObservableCollection<LayoutSetting> LayoutSettings { get; set; }
 
@@ -82,11 +83,11 @@ namespace DragNDropTask
                 {
                     if (obj is PositionsSwappedRoutedEventArgs eventArgs)
                     {
-                        MessageBox.Show(
-                            $"Dropping with event args {eventArgs.Positions.SourcePosition} and {eventArgs.Positions.TargetPosition}");
+                        //MessageBox.Show(
+                        //    $"Dropping with event args {eventArgs.Positions.SourcePosition} and {eventArgs.Positions.TargetPosition}");
                         return;
                     }
-                    MessageBox.Show("Dropping WITHOUT event args");
+                    //MessageBox.Show("Dropping WITHOUT event args");
                 });
 
         public MyCommand AddRectangleToItemsSourceCommand

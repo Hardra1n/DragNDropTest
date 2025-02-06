@@ -88,6 +88,21 @@ namespace DragNDropTask
             return layouts;
         }
 
+        public static T FindAncestor<T>(DependencyObject obj)
+        {
+            while (obj != null)
+            {
+                if (obj is T foundAncestor)
+                {
+                    return foundAncestor;
+                }
+
+                obj = VisualTreeHelper.GetParent(obj);
+            }
+
+            return default(T);
+        }
+
         public static ObservableCollection<WidgetViewModel> CreateDefaultItemsSource()
         {
             MyObservableCollection<WidgetViewModel> widgets = new();
