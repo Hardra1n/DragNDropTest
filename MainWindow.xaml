@@ -8,7 +8,8 @@
         xmlns:behaviours="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:col="clr-namespace:System.Collections;assembly=System.Runtime"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        AllowDrop="True">
     <Window.DataContext>
         <local:DragNDropViewModel></local:DragNDropViewModel>
     </Window.DataContext>
@@ -64,7 +65,7 @@
         </DataTemplate>
 
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">
-            <Grid Name="DashboardRoot" ShowGridLines="True">
+            <Grid Name="DashboardRoot" Background="Pink">
 
             </Grid>
         </ControlTemplate>
@@ -108,21 +109,24 @@
                            TextWrapping="Wrap"/>
             </ScrollViewer>
         </StackPanel>
-        <dashboards:DashboardControl 
-            ItemTemplate="{StaticResource DashboardItemTemplate}"
-            ItemsSource="{Binding ItemsSource}"
-            Template="{StaticResource DashboardTemplate}"
-            LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"  
-            Grid.Column="1">
+        <AdornerDecorator Grid.Column="1">
+            <dashboards:DashboardControl 
+                x:Name="DashboardControlElement"
+                ItemTemplate="{StaticResource DashboardItemTemplate}"
+                ItemsSource="{Binding ItemsSource}"
+                Template="{StaticResource DashboardTemplate}"
+                LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}">
 
-            <behaviours:Interaction.Triggers>
-                <behaviours:EventTrigger EventName="PositionsSwapped">
-                    <behaviours:InvokeCommandAction Command="{Binding PositionsSwappedHandlingCommand}"
-                                                    PassEventArgsToCommand="True">
-                    </behaviours:InvokeCommandAction>
-                </behaviours:EventTrigger>
-            </behaviours:Interaction.Triggers>
-        </dashboards:DashboardControl>
+                <behaviours:Interaction.Triggers>
+                    <behaviours:EventTrigger EventName="PositionsSwapped">
+                        <behaviours:InvokeCommandAction Command="{Binding PositionsSwappedHandlingCommand}"
+                                                        PassEventArgsToCommand="True">
+                        </behaviours:InvokeCommandAction>
+                    </behaviours:EventTrigger>
+                </behaviours:Interaction.Triggers>
+            </dashboards:DashboardControl>
+
+        </AdornerDecorator>
         <StackPanel Grid.Column="2" x:Name="tempStackPanel">
 
         </StackPanel>

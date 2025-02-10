@@ -288,7 +288,7 @@ namespace DragNDropTask.Dashboards
 
             ContentControl contentControl = new();
 
-            DragDropHelper?.Register(contentControl);
+
 
             if (widgetViewModel.Content is UIElement element)
             {
@@ -344,7 +344,6 @@ namespace DragNDropTask.Dashboards
                 return;
             }
 
-            DragDropHelper?.Unregister(elementToDelete);
             DashboardRoot?.Children.Remove(elementToDelete);
             ContentItemsDictionary.Remove(widgetViewModel);
         }

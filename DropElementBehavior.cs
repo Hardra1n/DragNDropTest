@@ -21,30 +21,47 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 {
     private const bool DefaultAllowDropValue = false;
 
-    public static readonly DependencyProperty PositionIndexProperty = 
-        DependencyProperty.Register(nameof(PositionIndex), typeof(int), typeof(DropElementBehaviour), new PropertyMetadata(default(int)));
+    public static readonly DependencyProperty PositionIndexProperty =
+        DependencyProperty.Register(nameof(PositionIndex), typeof(int), typeof(DropElementBehaviour),
+            new PropertyMetadata(default(int)));
 
     public static readonly DependencyProperty SwapWidgetsCommandProperty =
         DependencyProperty.Register(nameof(SwapWidgetsCommand), typeof(ICommand), typeof(DropElementBehaviour), null);
 
     public static readonly DependencyProperty AllowDropProperty = DependencyProperty.Register(
-                                                    nameof(AllowDrop), typeof(bool), typeof(DropElementBehaviour), new PropertyMetadata(DefaultAllowDropValue, AllowDropPropertyChanged));
-
-    private static void AllowDropPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-        if (d is not DropElementBehaviour behavior || e.NewValue is not bool isAllowed || behavior.AssociatedObject == null)
-        {
-            return;
-        }
-
-        behavior.AllowDrop = isAllowed;
-    }
+        nameof(AllowDrop), typeof(bool), typeof(DropElementBehaviour),
+        new PropertyMetadata(DefaultAllowDropValue, AllowDropPropertyChanged));
 
     public static readonly DependencyProperty MyStackPanelProperty = DependencyProperty.Register(
-        nameof(MyStackPanel), typeof(StackPanel), typeof(DropElementBehaviour), new PropertyMetadata(default(StackPanel)));
+        nameof(MyStackPanel), typeof(StackPanel), typeof(DropElementBehaviour),
+        new PropertyMetadata(default(StackPanel)));
 
     public static readonly DependencyProperty MyTextBlockProperty = DependencyProperty.Register(
         nameof(MyTextBlock), typeof(TextBlock), typeof(DropElementBehaviour), new PropertyMetadata(default(TextBlock)));
+
+    //public static readonly RoutedEvent DragEndedRoutedEvent = EventManager.RegisterRoutedEvent("DragEnded", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(DropElementBehaviour));
+
+    //public static void AddDragEndedHandler(DependencyObject dependencyObject, RoutedEventHandler handler)
+    //{
+    //    if (dependencyObject is not UIElement element)
+    //    {
+    //        return;
+    //    }
+
+    //    element.AddHandler(DragEndedRoutedEvent, handler);
+    //}
+
+    //public static void RemoveDragEndedHandler(DependencyObject dependencyObject, RoutedEventHandler handler)
+    //{
+    //    if (dependencyObject is not UIElement element)
+    //    {
+    //        return;
+    //    }
+
+    //    element.RemoveHandler(DragEndedRoutedEvent, handler);
+    //}
+
+
 
     public TextBlock MyTextBlock
     {
@@ -62,13 +79,13 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
     public bool AllowDrop
     {
-        get => (bool) GetValue(AllowDropProperty);
+        get => (bool)GetValue(AllowDropProperty);
         set => SetValue(AllowDropProperty, value);
     }
 
     public int PositionIndex
     {
-        get => (int) GetValue(PositionIndexProperty);
+        get => (int)GetValue(PositionIndexProperty);
         set => SetValue(PositionIndexProperty, value);
     }
 
@@ -84,8 +101,18 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
     private Image DraggingImage { get; set; }
 
-    private Point PreviousDraggingMousePosition { get; set; } 
+    private Point PreviousDraggingMousePosition { get; set; }
 
+
+
+    private static void AllowDropPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not DropElementBehaviour behavior || e.NewValue is not bool isAllowed ||
+            behavior.AssociatedObject == null)
+        {
+            return;
+        }
+    }
 
     private void AllowDropForChildren(DependencyObject obj)
     {
@@ -102,6 +129,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
                 innerElement.AllowDrop = true;
                 AllowDropForChildren(innerElement);
             }
+
             AllowDropForChildren(child);
         }
 
@@ -125,6 +153,11 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         AssociatedObject.Drop += OnDrop;
         AssociatedObject.DragOver += OnDragOver;
         DragStartElementBehavior.AddDragStartedHandler(AssociatedObject, OnDragStarted);
+    }
+
+    private void OnDragStarted(object sender, DragStartedEventArgs eventArgs)
+    {
+        eventArgs.DraggingImage = CreateImage(100, 100);
     }
 
     protected override void OnDetaching()
@@ -185,49 +218,49 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
     //}
 
 
-    private void OnDragStarted(object sender, RoutedEventArgs e)
-    {
-        Size photoSize = new Size(100, 100);
+    //private void OnDragStarted(object sender, RoutedEventArgs e)
+    //{
+    //    Size photoSize = new Size(100, 100);
 
 
-        DraggingImage = CreateImage(photoSize.Width, photoSize.Height);
-        MyStackPanel.Children.Add(DraggingImage);
-        StartDraggingVisual();
-    }
+    //    DraggingImage = CreateImage(photoSize.Width, photoSize.Height);
+    //    MyStackPanel.Children.Add(DraggingImage);
+    //    StartDraggingVisual();
+    //}
 
-    private void StartDraggingVisual()
-    {
-        DraggingImage.RenderTransform = new TranslateTransform();
-        ParentWindow.PreviewDragOver += OnGlobalDragOver;
-    }
+    //private void StartDraggingVisual()
+    //{
+    //    DraggingImage.RenderTransform = new TranslateTransform();
+    //    ParentWindow.PreviewDragOver += OnGlobalDragOver;
+    //}
 
-    private void OnGlobalDragOver(object sender, DragEventArgs e)
-    {
-        if (PreviousDraggingMousePosition == default)
-        {
-            PreviousDraggingMousePosition = e.GetPosition(AssociatedObject);
-        }
-        var position = e.GetPosition(AssociatedObject);
-        double xOffset = position.X - PreviousDraggingMousePosition.X;
-        double yOffset = position.Y - PreviousDraggingMousePosition.Y;
+    //private void OnGlobalDragOver(object sender, DragEventArgs e)
+    //{
+    //    if (PreviousDraggingMousePosition == default)
+    //    {
+    //        PreviousDraggingMousePosition = e.GetPosition(AssociatedObject);
+    //    }
 
-        MyTextBlock.Text = MyTextBlock.Text + $"\n{position.ToString()}: {xOffset} {yOffset}\n";
-        if (DraggingImage.RenderTransform is not TranslateTransform transform)
-        {
-            return;
-        }
+    //    var position = e.GetPosition(AssociatedObject);
+    //    double xOffset = position.X - PreviousDraggingMousePosition.X;
+    //    double yOffset = position.Y - PreviousDraggingMousePosition.Y;
 
-        transform.X = xOffset;
-        transform.Y = yOffset;
-        PreviousDraggingMousePosition = position;
-        
-        //e.Handled = true;
-    }
+    //    MyTextBlock.Text = MyTextBlock.Text + $"\n{position.ToString()}: {xOffset} {yOffset}\n";
+    //    if (DraggingImage.RenderTransform is not TranslateTransform transform)
+    //    {
+    //        return;
+    //    }
+
+    //    transform.X = xOffset;
+    //    transform.Y = yOffset;
+    //    PreviousDraggingMousePosition = position;
+
+    //    //e.Handled = true;
+    //}
 
 
     private Image CreateImage(double width, double height)
     {
-
         var renderTargetBitmap = new RenderTargetBitmap((int)width, (int)height, 96, 96, PixelFormats.Pbgra32);
 
         var visual = new DrawingVisual();
@@ -253,7 +286,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
             return;
         }
 
-        e.Handled = true;
+        //e.Handled = true;
     }
 
     private void OnDragEnter(object sender, DragEventArgs e)
@@ -265,7 +298,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
         e.Effects = DragDropEffects.Move;
         ApplyDragEffect();
-        e.Handled = true;
+        //e.Handled = true;
     }
 
     private void OnDragLeave(object sender, DragEventArgs e)
@@ -310,7 +343,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
     private bool IsDragDropOperationAllowed(DragEventArgs eventArgs, out int positionIndex)
     {
         positionIndex = -1;
-        if (eventArgs.Data.GetData(typeof(int)) is not int index || 
+        if (eventArgs.Data.GetData(typeof(int)) is not int index ||
             eventArgs.Data.GetData(typeof(string)) is not string targetBehavior ||
             !targetBehavior.Equals(nameof(DropElementBehaviour)))
         {

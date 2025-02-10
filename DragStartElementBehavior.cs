@@ -18,9 +18,32 @@ public class DragStartElementBehavior : Behavior<UIElement>
     public static readonly DependencyProperty IsDragEnabledProperty = DependencyProperty.Register(
                                                     nameof(IsDragEnabled), typeof(bool), typeof(DragStartElementBehavior), new PropertyMetadata(default(bool)));
 
-    public static readonly RoutedEvent DragStartedRoutedEvent = EventManager.RegisterRoutedEvent("DragStarted", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(DragStartElementBehavior));
+    public static readonly RoutedEvent DragStartedRoutedEvent = EventManager.RegisterRoutedEvent("DragStarted", RoutingStrategy.Bubble, typeof(DragStartedEventHandler), typeof(DragStartElementBehavior));
 
-    public static void AddDragStartedHandler(DependencyObject element, RoutedEventHandler handler)
+    public static readonly RoutedEvent DragEndedRoutedEvent = EventManager.RegisterRoutedEvent("DragEnded", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(DragStartElementBehavior));
+
+
+    public static void AddDragEndedHandler(DependencyObject element, RoutedEventHandler handler)
+    {
+        if (element is not UIElement uiElement)
+        {
+            return;
+        }
+
+        uiElement.AddHandler(DragEndedRoutedEvent, handler);
+    }
+
+    public static void RemoveDragEndedHandler(DependencyObject element, RoutedEventHandler handler)
+    {
+        if (element is not UIElement uiElement)
+        {
+            return;
+        }
+
+        uiElement.RemoveHandler(DragEndedRoutedEvent, handler);
+    }
+
+    public static void AddDragStartedHandler(DependencyObject element, DragStartedEventHandler handler)
     {
         if (element is not UIElement uiElement)
         {
@@ -30,7 +53,7 @@ public class DragStartElementBehavior : Behavior<UIElement>
         uiElement.AddHandler(DragStartedRoutedEvent, handler);
     }
 
-    public static void RemoveDragStartedHandler(DependencyObject element, RoutedEventHandler handler)
+    public static void RemoveDragStartedHandler(DependencyObject element, DragStartedEventHandler handler)
     {
         if (element is not UIElement uiElement)
         {
@@ -39,6 +62,8 @@ public class DragStartElementBehavior : Behavior<UIElement>
 
         uiElement.RemoveHandler(DragStartedRoutedEvent, handler);
     }
+
+    public delegate void DragStartedEventHandler(object sender, DragStartedEventArgs eventArgs);
 
     public bool IsDragEnabled
     {
@@ -73,6 +98,7 @@ public class DragStartElementBehavior : Behavior<UIElement>
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
+        //e.GetPosition()
         if (e.LeftButton != MouseButtonState.Pressed)
         {
             IsLeftButtonPressedOnElement = false;
@@ -87,10 +113,12 @@ public class DragStartElementBehavior : Behavior<UIElement>
         DataObject dataObject = new();
         dataObject.SetData(typeof(int), PositionIndex);
         dataObject.SetData(typeof(string), nameof(DropElementBehaviour));
-        var eventArgs = new RoutedEventArgs(DragStartedRoutedEvent);
+        var eventArgs = new DragStartedEventArgs();
         AssociatedObject.RaiseEvent(eventArgs);
 
         DragDrop.DoDragDrop(AssociatedObject, dataObject, DragDropEffects.Move);
+
+        AssociatedObject.RaiseEvent(new RoutedEventArgs(DragEndedRoutedEvent));
         IsLeftButtonPressedOnElement = false;
     }
 }

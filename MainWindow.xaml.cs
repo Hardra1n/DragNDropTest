@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Documents;
 
 namespace DragNDropTask
 {
@@ -10,6 +11,15 @@ namespace DragNDropTask
         public MainWindow()
         {
             InitializeComponent();
+            var elementToAdorn = FindName("DashboardControlElement") as UIElement;
+            if (elementToAdorn == null)
+            {
+                return;
+            }
+
+            var adorer= AdornerLayer.GetAdornerLayer(elementToAdorn);
+
+            adorer?.Add(new MyAdorner(elementToAdorn));
         }
     }
 }
