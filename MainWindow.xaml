@@ -54,9 +54,7 @@
                         <local:DropElementBehaviour 
                         PositionIndex ="{Binding Path=DataContext.PosIndex}" 
                         SwapWidgetsCommand="{Binding Path=SwapElementsCommand,
-                                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}}"
-                        MyStackPanel="{Binding ElementName=tempStackPanel}"
-                        MyTextBlock="{Binding ElementName=consoleTextBox}"/>
+                                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}}"/>
                     </behaviours:Interaction.Behaviors>
                 </Grid>
 
@@ -126,8 +124,5 @@
             </dashboards:DashboardControl>
 
         </AdornerDecorator>
-        <StackPanel Grid.Column="2" x:Name="tempStackPanel">
-
-        </StackPanel>
     </Grid>
 </Window>

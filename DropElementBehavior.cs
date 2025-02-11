@@ -9,9 +9,11 @@ using System.Transactions;
 using System.Windows.Media.Effects;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using DragNDropTask.Dashboards;
 using Microsoft.Xaml.Behaviors;
 using NLog;
 
@@ -32,50 +34,6 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         nameof(AllowDrop), typeof(bool), typeof(DropElementBehaviour),
         new PropertyMetadata(DefaultAllowDropValue, AllowDropPropertyChanged));
 
-    public static readonly DependencyProperty MyStackPanelProperty = DependencyProperty.Register(
-        nameof(MyStackPanel), typeof(StackPanel), typeof(DropElementBehaviour),
-        new PropertyMetadata(default(StackPanel)));
-
-    public static readonly DependencyProperty MyTextBlockProperty = DependencyProperty.Register(
-        nameof(MyTextBlock), typeof(TextBlock), typeof(DropElementBehaviour), new PropertyMetadata(default(TextBlock)));
-
-    //public static readonly RoutedEvent DragEndedRoutedEvent = EventManager.RegisterRoutedEvent("DragEnded", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(DropElementBehaviour));
-
-    //public static void AddDragEndedHandler(DependencyObject dependencyObject, RoutedEventHandler handler)
-    //{
-    //    if (dependencyObject is not UIElement element)
-    //    {
-    //        return;
-    //    }
-
-    //    element.AddHandler(DragEndedRoutedEvent, handler);
-    //}
-
-    //public static void RemoveDragEndedHandler(DependencyObject dependencyObject, RoutedEventHandler handler)
-    //{
-    //    if (dependencyObject is not UIElement element)
-    //    {
-    //        return;
-    //    }
-
-    //    element.RemoveHandler(DragEndedRoutedEvent, handler);
-    //}
-
-
-
-    public TextBlock MyTextBlock
-    {
-        get { return (TextBlock)GetValue(MyTextBlockProperty); }
-        set { SetValue(MyTextBlockProperty, value); }
-    }
-
-    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
-    public StackPanel MyStackPanel
-    {
-        get { return (StackPanel)GetValue(MyStackPanelProperty); }
-        set { SetValue(MyStackPanelProperty, value); }
-    }
 
     public bool AllowDrop
     {
@@ -95,15 +53,10 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         set => SetValue(SwapWidgetsCommandProperty, value);
     }
 
+
+    private Adorner _dragDropAdorner;
+
     private Effect SavedAssociatedObjectEffect { get; set; }
-
-    private Window ParentWindow { get; set; }
-
-    private Image DraggingImage { get; set; }
-
-    private Point PreviousDraggingMousePosition { get; set; }
-
-
 
     private static void AllowDropPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -143,34 +96,61 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
     protected override void OnAttached()
     {
         AllowDrop = true;
-        ParentWindow = Extensions.FindAncestor<Window>(AssociatedObject);
         AllowDropForChildren(AssociatedObject);
         SavedAssociatedObjectEffect = AssociatedObject.Effect;
-
 
         AssociatedObject.DragEnter += OnDragEnter;
         AssociatedObject.DragLeave += OnDragLeave;
         AssociatedObject.Drop += OnDrop;
         AssociatedObject.DragOver += OnDragOver;
         DragStartElementBehavior.AddDragStartedHandler(AssociatedObject, OnDragStarted);
-    }
-
-    private void OnDragStarted(object sender, DragStartedEventArgs eventArgs)
-    {
-        eventArgs.DraggingImage = CreateImage(100, 100);
+        DragStartElementBehavior.AddDragEndedHandler(AssociatedObject, OnDragEnded);
     }
 
     protected override void OnDetaching()
     {
         AllowDrop = false;
-        AssociatedObject.DragEnter += OnDragEnter;
-        AssociatedObject.DragLeave += OnDragLeave;
-        AssociatedObject.Drop += OnDrop;
-        AssociatedObject.DragOver += OnDragOver;
+        AssociatedObject.DragEnter -= OnDragEnter;
+        AssociatedObject.DragLeave -= OnDragLeave;
+        AssociatedObject.Drop -= OnDrop;
+        AssociatedObject.DragOver -= OnDragOver;
         DragStartElementBehavior.RemoveDragStartedHandler(AssociatedObject, OnDragStarted);
     }
 
-    private Image CreateImage(double width, double height)
+    private void OnDragEnded(object sender, RoutedEventArgs e)
+    {
+        var element = FindElementToAttachAdorner();
+        var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+        if (adornerLayer == null)
+        {
+            return;
+        }
+
+        adornerLayer.Remove(_dragDropAdorner);
+    }
+
+    private void OnDragStarted(object sender, RoutedEventArgs e)
+    {
+        var element = FindElementToAttachAdorner();
+        var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+        if (adornerLayer == null)
+        {
+            return;
+        }
+        _dragDropAdorner = new DragDropAdorner(element, CreateImageSource(100, 100));
+
+        adornerLayer.Add(_dragDropAdorner);
+    }
+
+    private UIElement FindElementToAttachAdorner()
+    {
+
+        var widgetsPanelParent = Extensions.FindAncestor<DashboardControl>(AssociatedObject);
+        return widgetsPanelParent;
+    }
+
+
+    private ImageSource CreateImageSource(double width, double height)
     {
         var renderTargetBitmap = new RenderTargetBitmap((int)width, (int)height, 96, 96, PixelFormats.Pbgra32);
 
@@ -182,12 +162,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         }
 
         renderTargetBitmap.Render(visual);
-
-        Image image = new()
-        {
-            Source = renderTargetBitmap
-        };
-        return image;
+        return renderTargetBitmap;
     }
 
     private void OnDragOver(object sender, DragEventArgs e)
@@ -198,13 +173,14 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         }
 
         e.Effects = DragDropEffects.Move;
-        //e.Handled = true;
+
     }
 
     private void OnDragEnter(object sender, DragEventArgs e)
     {
         if (!IsDragDropOperationAllowed(e, out _))
         {
+            e.Handled = true;
             return;
         }
 
@@ -217,17 +193,25 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
     {
         if (!IsDragDropOperationAllowed(e, out _))
         {
+            e.Handled = true;
             return;
         }
 
         RefrainDragEffect();
+        e.Effects = DragDropEffects.Move;
         e.Handled = true;
     }
 
 
     private void ApplyDragEffect()
     {
-        AssociatedObject.Effect = new DropShadowEffect();
+        AssociatedObject.Effect = new DropShadowEffect
+        {
+            BlurRadius = 30,
+            ShadowDepth = 8,
+            RenderingBias = RenderingBias.Performance,
+            Direction = 270
+        };
     }
 
     private void RefrainDragEffect()
@@ -250,22 +234,22 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         }
 
         RefrainDragEffect();
+        e.Handled = true;
     }
 
     private bool IsDragDropOperationAllowed(DragEventArgs eventArgs, out int positionIndex)
     {
         positionIndex = -1;
         if (eventArgs.Data.GetData(typeof(int)) is not int index ||
-            eventArgs.Data.GetData(typeof(string)) is not string targetBehavior ||
-            !targetBehavior.Equals(nameof(DropElementBehaviour)))
+            eventArgs.Data.GetData(typeof(Type)) is not Type targetType ||
+            targetType != typeof(DragStartElementBehavior))
         {
             return false;
         }
 
         if (index == PositionIndex || !AllowDrop)
         {
-            eventArgs.Effects = DragDropEffects.None;
-            //eventArgs.Handled = true;
+            eventArgs.Effects = DragDropEffects.Move;
             return false;
         }
 

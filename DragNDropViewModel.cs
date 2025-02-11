@@ -17,10 +17,9 @@ namespace DragNDropTask
         {
             LayoutSettings = Extensions.CreateDefaultLayouts();
             ItemsSource = Extensions.CreateDefaultItemsSource();
-            //ItemsSource.CollectionChanged += ((sender, args) => MessageBox.Show("Resource changed"));
         }
 
-        public StackPanel MyStackPanel { get; set; }
+
         public ObservableCollection<WidgetViewModel> ItemsSource { get; set; } 
         public ObservableCollection<LayoutSetting> LayoutSettings { get; set; }
 

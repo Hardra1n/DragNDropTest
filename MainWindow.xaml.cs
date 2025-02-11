@@ -11,15 +11,15 @@ namespace DragNDropTask
         public MainWindow()
         {
             InitializeComponent();
-            var elementToAdorn = FindName("DashboardControlElement") as UIElement;
-            if (elementToAdorn == null)
-            {
-                return;
-            }
+            //var elementToAdorn = FindName("DashboardControlElement") as UIElement;
+            //if (elementToAdorn == null)
+            //{
+            //    return;
+            //}
 
-            var adorer= AdornerLayer.GetAdornerLayer(elementToAdorn);
+            //var adorer = AdornerLayer.GetAdornerLayer(elementToAdorn);
 
-            adorer?.Add(new MyAdorner(elementToAdorn));
+            //adorer?.Add(new DragDropAdorner(elementToAdorn));
         }
     }
 }
