@@ -8,8 +8,7 @@
         xmlns:behaviours="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:col="clr-namespace:System.Collections;assembly=System.Runtime"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        AllowDrop="True">
+        Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <local:DragNDropViewModel></local:DragNDropViewModel>
     </Window.DataContext>

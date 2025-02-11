@@ -169,95 +169,6 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         AssociatedObject.DragOver += OnDragOver;
         DragStartElementBehavior.RemoveDragStartedHandler(AssociatedObject, OnDragStarted);
     }
-    //private void OnDragStarted(object sender, RoutedEventArgs e)
-    //{
-    //    var position = Mouse.GetPosition(null);
-
-    //    Image myImage = new Image();
-    //    //myImage.Width = 30;
-    //    myImage.Height = 30;
-    //    FormattedText text = new FormattedText("ABC",
-    //        new CultureInfo("en-us"),
-    //        FlowDirection.LeftToRight,
-    //        new Typeface(new FontFamily(), FontStyles.Normal, FontWeights.Normal, new FontStretch()),
-    //        10,
-    //        new SolidColorBrush(Color.FromRgb(130,130,130)));
-
-    //    DrawingVisual drawingVisual = new DrawingVisual();
-    //    DrawingContext drawingContext = drawingVisual.RenderOpen();
-    //    drawingContext.DrawText(text, new Point(2, 2));
-    //    drawingContext.Close();
-    //    Image
-    //    //RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(180, 180, 120, 96, PixelFormats.Pbgra32);
-    //    RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap();
-    //    renderTargetBitmap.Render(drawingVisual);
-    //    myImage.Source = renderTargetBitmap;
-
-    //    MyStackPanel.Children.Add(myImage);
-    //}
-
-    //private void OnDragStarted(object sender, RoutedEventArgs e)
-    //{
-    //    Size photoSize = new Size(100, 100);
-
-    //    AssociatedObject.Measure(photoSize);
-    //    AssociatedObject.Arrange(new Rect(photoSize));
-
-    //    RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(
-    //        (int)photoSize.Width,
-    //        (int)photoSize.Height,
-    //        96,
-    //        96,
-    //        PixelFormats.Pbgra32);
-
-    //    renderTargetBitmap.Render(AssociatedObject);
-    //    Image image = new Image();
-    //    image.Source = renderTargetBitmap;
-
-    //    MyStackPanel.Children.Add(image);
-    //}
-
-
-    //private void OnDragStarted(object sender, RoutedEventArgs e)
-    //{
-    //    Size photoSize = new Size(100, 100);
-
-
-    //    DraggingImage = CreateImage(photoSize.Width, photoSize.Height);
-    //    MyStackPanel.Children.Add(DraggingImage);
-    //    StartDraggingVisual();
-    //}
-
-    //private void StartDraggingVisual()
-    //{
-    //    DraggingImage.RenderTransform = new TranslateTransform();
-    //    ParentWindow.PreviewDragOver += OnGlobalDragOver;
-    //}
-
-    //private void OnGlobalDragOver(object sender, DragEventArgs e)
-    //{
-    //    if (PreviousDraggingMousePosition == default)
-    //    {
-    //        PreviousDraggingMousePosition = e.GetPosition(AssociatedObject);
-    //    }
-
-    //    var position = e.GetPosition(AssociatedObject);
-    //    double xOffset = position.X - PreviousDraggingMousePosition.X;
-    //    double yOffset = position.Y - PreviousDraggingMousePosition.Y;
-
-    //    MyTextBlock.Text = MyTextBlock.Text + $"\n{position.ToString()}: {xOffset} {yOffset}\n";
-    //    if (DraggingImage.RenderTransform is not TranslateTransform transform)
-    //    {
-    //        return;
-    //    }
-
-    //    transform.X = xOffset;
-    //    transform.Y = yOffset;
-    //    PreviousDraggingMousePosition = position;
-
-    //    //e.Handled = true;
-    //}
-
 
     private Image CreateImage(double width, double height)
     {
@@ -286,6 +197,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
             return;
         }
 
+        e.Effects = DragDropEffects.Move;
         //e.Handled = true;
     }
 
@@ -298,7 +210,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
         e.Effects = DragDropEffects.Move;
         ApplyDragEffect();
-        //e.Handled = true;
+        e.Handled = true;
     }
 
     private void OnDragLeave(object sender, DragEventArgs e)
@@ -353,7 +265,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         if (index == PositionIndex || !AllowDrop)
         {
             eventArgs.Effects = DragDropEffects.None;
-            eventArgs.Handled = true;
+            //eventArgs.Handled = true;
             return false;
         }
 

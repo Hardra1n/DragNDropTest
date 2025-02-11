@@ -98,7 +98,6 @@ public class DragStartElementBehavior : Behavior<UIElement>
 
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        //e.GetPosition()
         if (e.LeftButton != MouseButtonState.Pressed)
         {
             IsLeftButtonPressedOnElement = false;
