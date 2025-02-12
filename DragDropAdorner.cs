@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using DragNDropTask.Dashboards;
 using NLog.LayoutRenderers;
@@ -39,7 +40,7 @@ namespace DragNDropTask
 
         public Image DraggingImage;
 
-        public DragDropAdorner(UIElement adornedElement, ImageSource source) : base(adornedElement)
+        public DragDropAdorner(UIElement adornedElement, UIElement imageElement) : base(adornedElement)
         {
             AdornerVisuals = new VisualCollection(this);
             IsHitTestVisible = true;
@@ -64,9 +65,11 @@ namespace DragNDropTask
 
             _translateTransform = new TranslateTransform();
 
+            ImageSize.Width = imageElement.RenderSize.Width / 2;
+            ImageSize.Height = imageElement.RenderSize.Height / 2;
             DraggingImage = new Image()
             {
-                Source = source,
+                Source = CreateImageSource(imageElement),
                 Width = ImageSize.Width,
                 Height = ImageSize.Height,
                 IsHitTestVisible = false,
@@ -77,8 +80,23 @@ namespace DragNDropTask
             AdornerVisuals.Add(_windowSizeBorder);
             AdornerVisuals.Add(DraggingImage);
 
-            CompositionTarget.Rendering += HandleRendering;
             IsDragging = true;
+        }
+
+
+        private ImageSource CreateImageSource(UIElement element)
+        {
+            var renderTargetBitmap = new RenderTargetBitmap((int)ImageSize.Width, (int)ImageSize.Height, 96, 96, PixelFormats.Pbgra32);
+
+            var visual = new DrawingVisual();
+
+            using (var context = visual.RenderOpen())
+            {
+                context.DrawRectangle(new VisualBrush(element), null, new Rect(ImageSize));
+            }
+
+            renderTargetBitmap.Render(visual);
+            return renderTargetBitmap;
         }
 
         private void HandleDragLeave(object sender, DragEventArgs e)
@@ -125,7 +143,6 @@ namespace DragNDropTask
 
         private void UnsubscribeToEvents()
         {
-            CompositionTarget.Rendering -= HandleRendering;
             DragStartElementBehavior.RemoveDragEndedHandler(AdornedElement, OnDragEnded);
             AdornedElement.DragOver -= HandleDragOver;
             AdornedElement.QueryContinueDrag -= HandleQueryContinueDrag;
@@ -185,6 +202,7 @@ namespace DragNDropTask
             var position = e.GetPosition(AdornedElement);
             _lastMousePosition = position;
 
+
             e.Handled = true;
         }
 
@@ -227,12 +245,6 @@ namespace DragNDropTask
         //private void UpdateDraggingImagePosition()
         //{
         //    InvalidateVisual();
-        //}
-
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    drawingContext.DrawImage(DraggingImage.Source, new Rect(_lastMousePosition, ImageSize));
-        //    base.OnRender(drawingContext);
         //}
     }
 }

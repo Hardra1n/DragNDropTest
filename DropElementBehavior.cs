@@ -137,7 +137,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         {
             return;
         }
-        _dragDropAdorner = new DragDropAdorner(element, CreateImageSource(100, 100));
+        _dragDropAdorner = new DragDropAdorner(element, AssociatedObject);
 
         adornerLayer.Add(_dragDropAdorner);
     }
@@ -147,22 +147,6 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
         var widgetsPanelParent = Extensions.FindAncestor<DashboardControl>(AssociatedObject);
         return widgetsPanelParent;
-    }
-
-
-    private ImageSource CreateImageSource(double width, double height)
-    {
-        var renderTargetBitmap = new RenderTargetBitmap((int)width, (int)height, 96, 96, PixelFormats.Pbgra32);
-
-        var visual = new DrawingVisual();
-
-        using (var context = visual.RenderOpen())
-        {
-            context.DrawRectangle(new VisualBrush(AssociatedObject), null, new Rect(new Size(width, height)));
-        }
-
-        renderTargetBitmap.Render(visual);
-        return renderTargetBitmap;
     }
 
     private void OnDragOver(object sender, DragEventArgs e)
