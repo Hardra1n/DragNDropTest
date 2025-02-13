@@ -6,20 +6,21 @@
         xmlns:local="clr-namespace:DragNDropTask"
         xmlns:dashboards="clr-namespace:DragNDropTask.Dashboards"
         xmlns:behaviours="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:col="clr-namespace:System.Collections;assembly=System.Runtime"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
-        <local:DragNDropViewModel></local:DragNDropViewModel>
+        <local:DragNDropViewModel />
     </Window.DataContext>
     <Window.Resources>
         <DataTemplate x:Key="LayoutSelectorTemplate" DataType="{x:Type local:LayoutSetting}">
             <RadioButton GroupName="LayoutsGroup" Content="{Binding Name}">
                 <behaviours:Interaction.Triggers>
                     <behaviours:EventTrigger EventName="Checked">
-                        <behaviours:InvokeCommandAction Command="{Binding 
+                        <behaviours:InvokeCommandAction
+                            Command="{Binding 
                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}, 
-                            Path= DataContext.SelectLayoutSettingCommand}" CommandParameter="{Binding }"/>
+                            Path= DataContext.SelectLayoutSettingCommand}"
+                            CommandParameter="{Binding }" />
                     </behaviours:EventTrigger>
                 </behaviours:Interaction.Triggers>
             </RadioButton>
@@ -30,31 +31,33 @@
 
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                    Grid.Row="0">
+                        Grid.Row="0">
                         <TextBlock.Text>
-                            <Binding Path="DataContext.PosIndex" RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}" StringFormat="Header {0}"/>
+                            <Binding Path="DataContext.PosIndex"
+                                     RelativeSource="{RelativeSource AncestorType={x:Type ContentControl}}"
+                                     StringFormat="Header {0}" />
                         </TextBlock.Text>
-                    <behaviours:Interaction.Behaviors>
-                        <local:DragStartElementBehavior 
-                            PositionIndex ="{Binding Path=DataContext.PosIndex, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"
-                            IsDragEnabled="True"/>
-                    </behaviours:Interaction.Behaviors>
+                        <behaviours:Interaction.Behaviors>
+                            <local:DragStartElementBehavior
+                                PositionIndex="{Binding Path=DataContext.PosIndex, RelativeSource={RelativeSource AncestorType={x:Type ContentControl}}}"
+                                IsDragEnabled="True" />
+                        </behaviours:Interaction.Behaviors>
                     </TextBlock>
                     <ContentControl Grid.Row="1">
                         <ContentControl.Content>
-                            <Binding/>
+                            <Binding />
                         </ContentControl.Content>
                     </ContentControl>
 
                     <behaviours:Interaction.Behaviors>
-                        <local:DropElementBehaviour 
-                        PositionIndex ="{Binding Path=DataContext.PosIndex}" 
-                        SwapWidgetsCommand="{Binding Path=SwapElementsCommand,
-                                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}}"/>
+                        <local:DropElementBehaviour
+                            PositionIndex="{Binding Path=DataContext.PosIndex}"
+                            SwapWidgetsCommand="{Binding Path=SwapElementsCommand,
+                                             RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type dashboards:DashboardControl}}}" />
                     </behaviours:Interaction.Behaviors>
                 </Grid>
 
@@ -62,32 +65,30 @@
         </DataTemplate>
 
         <ControlTemplate x:Key="DashboardTemplate" TargetType="dashboards:DashboardControl">
-            <Grid Name="DashboardRoot" Background="Pink">
-
-            </Grid>
+            <Grid Name="DashboardRoot" Background="Pink" />
         </ControlTemplate>
         <local:PositionIndexPairConverter x:Key="PositionIndexPairConverter" />
 
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="4*"></ColumnDefinition>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="4*" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <ItemsControl x:Name="ItemsControl"
-                          ItemTemplate="{StaticResource LayoutSelectorTemplate}" 
-                          ItemsSource="{Binding LayoutSettings}"/>
+                          ItemTemplate="{StaticResource LayoutSelectorTemplate}"
+                          ItemsSource="{Binding LayoutSettings}" />
             <TextBlock>Selected scheme:</TextBlock>
-            <TextBlock Text="{Binding Path= SelectedLayoutSetting.Name}"></TextBlock>
+            <TextBlock Text="{Binding Path= SelectedLayoutSetting.Name}" />
             <StackPanel>
                 <TextBox x:Name="PosIndex1">0</TextBox>
                 <TextBox x:Name="PosIndex2">1</TextBox>
                 <Button Height="20" Command="{Binding Path=ChangePositionIndexesCommand}">
                     <Button.CommandParameter>
                         <MultiBinding Converter="{StaticResource PositionIndexPairConverter}">
-                            <Binding ElementName="PosIndex1" Path="Text"></Binding>
-                            <Binding ElementName="PosIndex2" Path="Text"></Binding>
+                            <Binding ElementName="PosIndex1" Path="Text" />
+                            <Binding ElementName="PosIndex2" Path="Text" />
                         </MultiBinding>
                     </Button.CommandParameter>
                 </Button>
@@ -95,33 +96,31 @@
             <Button Command="{Binding AddRectangleToItemsSourceCommand}">
                 <Button.Content>Add new rectangle</Button.Content>
             </Button>
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Visible"
                           x:Name="Scroller">
                 <TextBlock x:Name="consoleTextBox"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            Width="{Binding ElementName=Scroller, Path=ViewportWidth}"
-                           TextWrapping="Wrap"/>
+                           TextWrapping="Wrap" />
             </ScrollViewer>
         </StackPanel>
-        <AdornerDecorator Grid.Column="1">
-            <dashboards:DashboardControl 
-                x:Name="DashboardControlElement"
-                ItemTemplate="{StaticResource DashboardItemTemplate}"
-                ItemsSource="{Binding ItemsSource}"
-                Template="{StaticResource DashboardTemplate}"
-                LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}">
+        <dashboards:DashboardControl
+            x:Name="DashboardControlElement"
+            ItemTemplate="{StaticResource DashboardItemTemplate}"
+            ItemsSource="{Binding ItemsSource}"
+            Template="{StaticResource DashboardTemplate}"
+            LayoutSetting="{Binding Path=SelectedLayoutSetting, Mode=OneWay}"
+            Grid.Column="1">
 
-                <behaviours:Interaction.Triggers>
-                    <behaviours:EventTrigger EventName="PositionsSwapped">
-                        <behaviours:InvokeCommandAction Command="{Binding PositionsSwappedHandlingCommand}"
-                                                        PassEventArgsToCommand="True">
-                        </behaviours:InvokeCommandAction>
-                    </behaviours:EventTrigger>
-                </behaviours:Interaction.Triggers>
-            </dashboards:DashboardControl>
+            <behaviours:Interaction.Triggers>
+                <behaviours:EventTrigger EventName="PositionsSwapped">
+                    <behaviours:InvokeCommandAction Command="{Binding PositionsSwappedHandlingCommand}"
+                                                    PassEventArgsToCommand="True" />
+                </behaviours:EventTrigger>
+            </behaviours:Interaction.Triggers>
+        </dashboards:DashboardControl>
 
-        </AdornerDecorator>
     </Grid>
 </Window>

@@ -53,7 +53,7 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         set => SetValue(SwapWidgetsCommandProperty, value);
     }
 
-
+    private DraggingImagePopup _draggingImagePopup;
     private Adorner _dragDropAdorner;
 
     private Effect SavedAssociatedObjectEffect { get; set; }
@@ -103,8 +103,17 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
         AssociatedObject.DragLeave += OnDragLeave;
         AssociatedObject.Drop += OnDrop;
         AssociatedObject.DragOver += OnDragOver;
+        AssociatedObject.GiveFeedback += AssociatedObject_GiveFeedback;
         DragStartElementBehavior.AddDragStartedHandler(AssociatedObject, OnDragStarted);
         DragStartElementBehavior.AddDragEndedHandler(AssociatedObject, OnDragEnded);
+    }
+
+    private void AssociatedObject_GiveFeedback(object sender, GiveFeedbackEventArgs e)
+    {
+        if (_draggingImagePopup != null)
+        {
+            _draggingImagePopup.UpdatePosition();
+        }
     }
 
     protected override void OnDetaching()
@@ -119,27 +128,32 @@ public class DropElementBehaviour : Behavior<FrameworkElement>
 
     private void OnDragEnded(object sender, RoutedEventArgs e)
     {
-        var element = FindElementToAttachAdorner();
-        var adornerLayer = AdornerLayer.GetAdornerLayer(element);
-        if (adornerLayer == null)
-        {
-            return;
-        }
+        _draggingImagePopup.IsOpen = false;
+        //var element = FindElementToAttachAdorner();
+        //var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+        //if (adornerLayer == null)
+        //{
+        //    return;
+        //}
 
-        adornerLayer.Remove(_dragDropAdorner);
+        //adornerLayer.Remove(_dragDropAdorner);
     }
 
     private void OnDragStarted(object sender, RoutedEventArgs e)
     {
-        var element = FindElementToAttachAdorner();
-        var adornerLayer = AdornerLayer.GetAdornerLayer(element);
-        if (adornerLayer == null)
-        {
-            return;
-        }
-        _dragDropAdorner = new DragDropAdorner(element, AssociatedObject);
+        _draggingImagePopup = new DraggingImagePopup(AssociatedObject);
+        _draggingImagePopup.IsOpen = true;
+        //_dragGhostWindow = new DragGhostWindow(AssociatedObject);
+        //_dragGhostWindow.Show();
+        //var element = FindElementToAttachAdorner();
+        //var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+        //if (adornerLayer == null)
+        //{
+        //    return;
+        //}
+        //_dragDropAdorner = new DragDropAdorner(element, AssociatedObject);
 
-        adornerLayer.Add(_dragDropAdorner);
+        //adornerLayer.Add(_dragDropAdorner);
     }
 
     private UIElement FindElementToAttachAdorner()

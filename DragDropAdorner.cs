@@ -202,6 +202,7 @@ namespace DragNDropTask
             var position = e.GetPosition(AdornedElement);
             _lastMousePosition = position;
 
+            UpdateDraggingImagePosition();
 
             e.Handled = true;
         }
